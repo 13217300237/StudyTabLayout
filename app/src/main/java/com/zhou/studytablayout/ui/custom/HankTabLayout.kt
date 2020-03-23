@@ -67,6 +67,9 @@ class IndicatorLayout : LinearLayout {
     }
 
 
+    var indicatorLeft = 0
+    var indicatorRight = 0
+
     /**
      * 作为一个viewGroup，有可能它不会执行自身的draw方法，这里有一个值去控制，好像是 setWillNotDraw
      */
@@ -74,22 +77,37 @@ class IndicatorLayout : LinearLayout {
         val indicatorHeight = dpToPx(context, 4f)// 指示器高度
         // 现在貌似应该去画indicator了
         // 要绘制，首先要确定范围，左上右下
-        var left = 0
-        var right = dpToPx(context, 100f)
         var top = height - indicatorHeight
         var bottom = height
 
-        Log.d("drawTag", "$left    $right   $top     $bottom")
+        Log.d("drawTag", "$indicatorLeft    $indicatorRight   $top     $bottom")
 
         // 现在只考虑在底下的情况
         var selectedIndicator: Drawable = GradientDrawable()
-        selectedIndicator.setBounds(left, top, right, bottom)
+        selectedIndicator.setBounds(indicatorLeft, top, indicatorRight, bottom)
         DrawableCompat.setTint(selectedIndicator, resources.getColor(R.color.c2))
         selectedIndicator.draw(canvas!!)
 
         super.draw(canvas)
     }
 
+    fun updateIndicatorPosition(tabView: TabView, left: Int, right: Int) {
+        indicatorLeft = left
+        indicatorRight = right
+        postInvalidate()//  刷新自身，调用draw
+
+
+        // 把其他的都设置成未选中状态
+        for (i in 0 until childCount) {
+            val current = getChildAt(i) as TabView
+            if (current.hashCode() == tabView.hashCode()) {// 如果是当前被点击的这个，那么就不需要管
+                current.setSelectedStatus(true) // 选中状态
+            } else {// 如果不是
+                current.setSelectedStatus(false)// 非选中状态
+            }
+        }
+
+    }
 
     /**
      * 但是onDraw一定会执行
@@ -100,7 +118,7 @@ class IndicatorLayout : LinearLayout {
 
     // 对外提供方法，添加TabView
     fun addTabView(text: String) {
-        val tabView = TabView(context)
+        val tabView = TabView(context, this)
         val param = LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
         param.setMargins(dpToPx(context, 10f))
 
@@ -110,12 +128,19 @@ class IndicatorLayout : LinearLayout {
         textView.gravity = Gravity.CENTER
         textView.setPadding(dpToPx(context, 15f))
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
-        textView.setTextColor(resources.getColor(R.color.c4))
+        textView.setTextColor(resources.getColor(TabView.unselectedTextColor))
         tabView.setTextView(textView)
 
         addView(tabView, param)
         postInvalidate()
+
+        if (childCount == 1) {
+            val tabView0 = getChildAt(0) as TabView
+            tabView0.performClick()
+        }
     }
+
+
 }
 
 /**
@@ -124,9 +149,17 @@ class IndicatorLayout : LinearLayout {
 class TabView : LinearLayout {
     private lateinit var titleTextView: TextView
     private var selectedStatue: Boolean = false
+    private var parent: IndicatorLayout
 
-    constructor(ctx: Context) : super(ctx) {
+    companion object {
+        const val selectedTextColor = R.color.cf
+        const val unselectedTextColor = R.color.c1
+    }
+
+
+    constructor(ctx: Context, parent: IndicatorLayout) : super(ctx) {
         init()
+        this.parent = parent
     }
 
     fun setTextView(textView: TextView) {
@@ -136,7 +169,7 @@ class TabView : LinearLayout {
         addView(titleTextView, param)
 
         titleTextView.setOnClickListener {
-            setSelectedStatus(!selectedStatue)
+            parent.updateIndicatorPosition(this, left, right)
         }
     }
 
@@ -144,12 +177,12 @@ class TabView : LinearLayout {
 
     }
 
-    private fun setSelectedStatus(selected: Boolean) {
+    fun setSelectedStatus(selected: Boolean) {
         selectedStatue = selected
         if (selected) {
-            titleTextView.setTextColor(resources.getColor(R.color.c10))
-        } else {
             titleTextView.setTextColor(resources.getColor(R.color.cf))
+        } else {
+            titleTextView.setTextColor(resources.getColor(R.color.c1))
         }
     }
 
