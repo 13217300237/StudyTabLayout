@@ -31,7 +31,7 @@ class MyFragment(name: Int) : Fragment() {
         val tv = root?.findViewById<TextView>(R.id.tv)
         val cardMain = root?.findViewById<CardView>(R.id.card_main)
         tv?.text = "$mPosition"
-        var color: Int = 0
+        var color = 0
         when (mPosition % 5) {
             0 -> color = R.color.c1
             1 -> color = R.color.c2

@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
 
 
     class MyPagerAdapter(manager: FragmentManager) :
-        FragmentPagerAdapter(manager, FragmentPagerAdapter.BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+        FragmentPagerAdapter(manager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
         override fun getItem(position: Int): Fragment {
             return MyFragment(position)
