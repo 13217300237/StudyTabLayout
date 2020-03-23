@@ -16,19 +16,27 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val adapter = MyPagerAdapter(
-            supportFragmentManager
+                supportFragmentManager
         )
         viewpager.adapter = adapter
         viewpager.offscreenPageLimit = 3
         viewpager.setPageTransformer(true,
-            MyPageTransformer(this, adapter.count)
+                MyPageTransformer(this, adapter.count)
         )
         tabLayout.setupWithViewPager(viewpager)
+
+        hankTabLayout.addTabView("哈哈哈哈哈哈")
+        hankTabLayout.addTabView("呵呵呵呵呵")
+        hankTabLayout.addTabView("呵呵呵呵呵")
+        hankTabLayout.addTabView("呵呵呵呵呵")
+        hankTabLayout.addTabView("呵呵呵呵呵")
+        hankTabLayout.addTabView("呵呵呵呵呵")
+        hankTabLayout.addTabView("呵呵呵呵呵")
     }
 
 
     class MyPagerAdapter(manager: FragmentManager) :
-        FragmentPagerAdapter(manager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+            FragmentPagerAdapter(manager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
         override fun getItem(position: Int): Fragment {
             return MyFragment(position)

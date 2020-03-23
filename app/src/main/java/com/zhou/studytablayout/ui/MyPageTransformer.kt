@@ -52,7 +52,7 @@ class MyPageTransformer : ViewPager.PageTransformer {
             }
             else -> {
                 view.alpha = alphaBaseProportion.pow(position.toDouble() - 1)
-                    .toFloat();// alpha = 0.8的p-1次方
+                    .toFloat()// alpha = 0.8的p-1次方
             }
         }
         view.z = size - position

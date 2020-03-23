@@ -10,4 +10,12 @@
     <color name="c3">#5D4C7C</color>
     <color name="c4">#658B9C</color>
     <color name="c5">#57323E</color>
+    <color name="c6">#cccccc</color>
+
+    <color name="c7">#998E8E</color>
+    <color name="c8">#DF8080</color>
+    <color name="c9">#612828</color>
+    <color name="c10">#553B39</color>
+    <color name="cf">#ffffff</color>
+
 </resources>
