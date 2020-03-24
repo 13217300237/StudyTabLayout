@@ -1,5 +1,6 @@
 package com.zhou.studytablayout.ui.custom
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.drawable.Drawable
@@ -17,6 +18,7 @@ import android.widget.TextView
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.setMargins
 import androidx.core.view.setPadding
+import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import com.zhou.studytablayout.R
 import com.zhou.studytablayout.util.dpToPx
 
@@ -88,6 +90,12 @@ class IndicatorLayout : LinearLayout {
         DrawableCompat.setTint(selectedIndicator, resources.getColor(ColorManager.selectedTextColor))
         selectedIndicator.draw(canvas!!)
 
+        initIndicator()
+
+        super.draw(canvas)
+    }
+
+    private fun initIndicator() {
         Log.d("addTabViewTag", "$childCount")
         if (childCount > 0) {
             if (!inited) {
@@ -96,16 +104,39 @@ class IndicatorLayout : LinearLayout {
                 tabView0.performClick() // 难道这里在岗添加进去，测量尚未完成？那怎么办,那只能在onDraw里面去执行了
             }
         }
-
-        super.draw(canvas)
     }
 
     var inited: Boolean = false
+    private var indicatorAnimator: ValueAnimator = ValueAnimator.ofFloat(0f, 1f)
 
-    fun updateIndicatorPosition(tabView: TabView, left: Int, right: Int) {
-        indicatorLeft = left
-        indicatorRight = right
-        postInvalidate()//  刷新自身，调用draw
+
+    /**
+     * @param targetLeft
+     * @param targetRight
+     */
+    fun updateIndicatorPosition(tabView: TabView, targetLeft: Int, targetRight: Int) {
+
+        val currentLeft = indicatorLeft
+        val currentRight = indicatorRight
+
+        val leftDiff = targetLeft - currentLeft
+        val rightDiff = targetRight - currentRight
+
+        if (indicatorAnimator != null)
+            indicatorAnimator?.cancel()
+
+        // 这里应该有一个动画
+        indicatorAnimator.run {
+            duration = 200
+            interpolator = FastOutSlowInInterpolator()
+            addUpdateListener {
+                val progress = it.animatedValue as Float
+                indicatorLeft = currentLeft + (leftDiff * progress).toInt()
+                indicatorRight = currentRight + (rightDiff * progress).toInt()
+                postInvalidate()//  刷新自身，调用draw
+            }
+            start()
+        }
 
         // 把其他的都设置成未选中状态
         for (i in 0 until childCount) {
@@ -169,6 +200,7 @@ class TabView : LinearLayout {
         addView(titleTextView, param)
 
         setOnClickListener {
+            // 当tabView被点击的时候，底下的indicator应该是成动画效果，慢慢移动，而不是突然就跳过来
             parent.updateIndicatorPosition(this, left, right)
         }
     }
