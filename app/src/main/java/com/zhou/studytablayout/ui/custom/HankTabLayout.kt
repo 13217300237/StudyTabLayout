@@ -21,8 +21,11 @@ import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.setMargins
 import androidx.core.view.setPadding
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import androidx.viewpager.widget.ViewPager
+import com.google.android.material.tabs.TabLayout
 import com.zhou.studytablayout.R
 import com.zhou.studytablayout.util.dpToPx
+import java.lang.ref.WeakReference
 
 /**
  * 最外层
@@ -56,6 +59,66 @@ class HankTabLayout : HorizontalScrollView {
         indicatorLayout.addTabView(text)
     }
 
+    private lateinit var viewPager: ViewPager
+
+    fun setupWithViewPager(viewPager: ViewPager) {
+        this.viewPager = viewPager
+
+        // Add our custom OnPageChangeListener to the ViewPager
+        pageChangeListener = MyTabPageChangeLis(this)
+
+        // 标题栏
+        val adapter = viewPager.adapter ?: return
+        val count = adapter!!.count // 栏目数量
+        for (i in 0 until count) {
+            val pageTitle = adapter.getPageTitle(i)
+            addTabView(pageTitle.toString())
+        }
+
+        // 下一步，viewPager发生滑动的时候，要求indicator也跟着变动位置
+
+    }
+
+    private lateinit var pageChangeListener: MyTabPageChangeLis
+
+    class MyTabPageChangeLis : ViewPager.OnPageChangeListener {
+        private lateinit var tabLayoutRef: WeakReference<HankTabLayout> // 防止内存泄漏，用弱引用
+        private var previousScrollState = 0
+        private var scrollState = 0
+
+        constructor(tabLayout: HankTabLayout) {
+            tabLayoutRef = WeakReference(tabLayout)
+        }
+
+        override fun onPageScrollStateChanged(state: Int) {
+            previousScrollState = scrollState
+            scrollState = state
+        }
+
+        override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+            val tabLayout: HankTabLayout? = tabLayoutRef.get()
+
+
+//            Log.d("")
+//            if (tabLayout != null) { // Only update the text selection if we're not settling, or we are settling after
+//                val updateText = scrollState != ViewPager.SCROLL_STATE_SETTLING || previousScrollState == ViewPager.SCROLL_STATE_DRAGGING
+//                val updateIndicator = !(scrollState == ViewPager.SCROLL_STATE_SETTLING && previousScrollState == ViewPager.SCROLL_STATE_IDLE)
+//                tabLayout.setScrollPosition(position, positionOffset, updateText, updateIndicator)
+//            }
+        }
+
+        override fun onPageSelected(position: Int) {
+            val tabLayout: HankTabLayout? = tabLayoutRef.get()
+//            if (tabLayout != null && tabLayout.selectedTabPosition != position && position < tabLayout.tabCount) { // Select the tab, only updating the indicator if we're not being dragged/settled
+//// (since onPageScrolled will handle that).
+//                val updateIndicator = (scrollState == ViewPager.SCROLL_STATE_IDLE
+//                        || (scrollState == ViewPager.SCROLL_STATE_SETTLING
+//                        && previousScrollState == ViewPager.SCROLL_STATE_IDLE))
+//                tabLayout.selectTab(tabLayout.getTabAt(position), updateIndicator)
+//            }
+        }
+
+    }
 }
 
 /**
@@ -289,3 +352,7 @@ class ColorManager {
 // 下一步，给IndicatorLayout提供一个方法，将indicator画在文字的正下方，等长
 // 现在，点击tab的时候，同步滑动
 // 接下来，就是当点击到 被点击的tabView并不是完全处于屏幕之内时，应当把整个IndicatorLayout整体位移
+
+// 下一步，让ViewPager和TabLayout发生联动
+// 联动也是要分步骤的
+// 1. 标题栏你得给我先加载进来

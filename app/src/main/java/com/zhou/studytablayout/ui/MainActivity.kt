@@ -7,7 +7,6 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import com.zhou.studytablayout.R
 import kotlinx.android.synthetic.main.activity_main.*
-import java.lang.RuntimeException
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,20 +14,17 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        val adapter = MyPagerAdapter(
-                supportFragmentManager
-        )
+        val adapter = MyPagerAdapter(supportFragmentManager)
         viewpager.adapter = adapter
         viewpager.offscreenPageLimit = 3
-        viewpager.setPageTransformer(true,
-                MyPageTransformer(this, adapter.count)
-        )
+        viewpager.setPageTransformer(true, MyPageTransformer(this, adapter.count))
         tabLayout.setupWithViewPager(viewpager)
 
-        for (i in 0 until 10) {
-            hankTabLayout.addTabView("title$i")
-        }
 
+        val adapter2 = MyPagerAdapter(supportFragmentManager)
+        hankViewpager.adapter = adapter2
+        hankViewpager.offscreenPageLimit = 3
+        hankTabLayout.setupWithViewPager(hankViewpager)
 
     }
 
@@ -45,7 +41,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun getPageTitle(position: Int): CharSequence? {
-            return "title$position"
+            return "栏目$position"
         }
 
     }
