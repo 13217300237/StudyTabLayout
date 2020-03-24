@@ -113,6 +113,7 @@ class IndicatorLayout : LinearLayout {
 
     var inited: Boolean = false
     private var indicatorAnimator: ValueAnimator = ValueAnimator.ofFloat(0f, 1f)
+    private var scrollAnimator: ValueAnimator = ValueAnimator.ofFloat(0f, 1f)
     private val tabViewBounds = Rect()
     private val parentBounds = Rect()
 
@@ -146,10 +147,10 @@ class IndicatorLayout : LinearLayout {
 
 
         // 处理最外层布局( HankTabLayout )的滑动
-        run {
+        parent.run {
             tabView.getHitRect(tabViewBounds)
-            parent.getHitRect(parentBounds)
-            val scrolledX = parent.scrollX // 已经滑动过的距离
+            getHitRect(parentBounds)
+            val scrolledX = scrollX // 已经滑动过的距离
             val tabViewRealLeft = tabViewBounds.left - scrolledX  // 真正的left, 要算上scrolledX
             val tabViewRealRight = tabViewBounds.right - scrolledX // 真正的right, 要算上scrolledX
 
@@ -158,8 +159,9 @@ class IndicatorLayout : LinearLayout {
             val tabViewCenterX = (tabViewRealLeft + tabViewRealRight) / 2
             // 然后计算出parentBound的中心
             val parentCenterX = (parentBounds.left + parentBounds.right) / 2
-            val toScrollX = -parentCenterX + tabViewCenterX //  差值就是需要滚动的距离
-            parent.scrollBy(toScrollX, 0) // 难道你自动做了边界控制？
+            val needToScrollX = -parentCenterX + tabViewCenterX //  差值就是需要滚动的距离
+
+            startScrollAnimator(this, scrolledX, scrolledX + needToScrollX)
         }
 
 
@@ -172,7 +174,19 @@ class IndicatorLayout : LinearLayout {
                 current.setSelectedStatus(false)// 非选中状态
             }
         }
+    }
 
+    private fun startScrollAnimator(tabLayout: HankTabLayout, from: Int, to: Int) {
+        // 应该用动画效果，慢慢scroll过去
+        scrollAnimator.duration = 200
+        scrollAnimator.interpolator = FastOutSlowInInterpolator()
+        scrollAnimator.addUpdateListener {
+            val progress = it.animatedValue as Float
+            val diff = to - from
+            val currentDif = (diff * progress).toInt()
+            tabLayout.scrollTo(from + currentDif, 0)
+        }
+        scrollAnimator.start()
     }
 
     private fun calculateTabViewContentBounds(
