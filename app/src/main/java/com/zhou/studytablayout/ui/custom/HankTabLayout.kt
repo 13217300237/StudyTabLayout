@@ -85,17 +85,27 @@ class IndicatorLayout : LinearLayout {
         // 现在只考虑在底下的情况
         var selectedIndicator: Drawable = GradientDrawable()
         selectedIndicator.setBounds(indicatorLeft, top, indicatorRight, bottom)
-        DrawableCompat.setTint(selectedIndicator, resources.getColor(R.color.c2))
+        DrawableCompat.setTint(selectedIndicator, resources.getColor(ColorManager.selectedTextColor))
         selectedIndicator.draw(canvas!!)
+
+        Log.d("addTabViewTag", "$childCount")
+        if (childCount > 0) {
+            if (!inited) {
+                inited = true
+                val tabView0 = getChildAt(0) as TabView
+                tabView0.performClick() // 难道这里在岗添加进去，测量尚未完成？那怎么办,那只能在onDraw里面去执行了
+            }
+        }
 
         super.draw(canvas)
     }
+
+    var inited: Boolean = false
 
     fun updateIndicatorPosition(tabView: TabView, left: Int, right: Int) {
         indicatorLeft = left
         indicatorRight = right
         postInvalidate()//  刷新自身，调用draw
-
 
         // 把其他的都设置成未选中状态
         for (i in 0 until childCount) {
@@ -116,30 +126,26 @@ class IndicatorLayout : LinearLayout {
         super.onDraw(canvas)
     }
 
-    // 对外提供方法，添加TabView
+    /**
+     * 对外提供方法，添加TabView
+     */
     fun addTabView(text: String) {
         val tabView = TabView(context, this)
         val param = LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
         param.setMargins(dpToPx(context, 10f))
 
         val textView = TextView(context)
-        textView.setBackgroundDrawable(resources.getDrawable(R.drawable.my_tablayout_textview_bg))
         textView.text = text
         textView.gravity = Gravity.CENTER
         textView.setPadding(dpToPx(context, 15f))
         textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 20f)
-        textView.setTextColor(resources.getColor(TabView.unselectedTextColor))
+        textView.setTextColor(resources.getColor(ColorManager.unselectedTextColor))
         tabView.setTextView(textView)
 
         addView(tabView, param)
         postInvalidate()
 
-        if (childCount == 1) {
-            val tabView0 = getChildAt(0) as TabView
-            tabView0.performClick()
-        }
     }
-
 
 }
 
@@ -147,15 +153,9 @@ class IndicatorLayout : LinearLayout {
  * 最里层TabView
  */
 class TabView : LinearLayout {
-    private lateinit var titleTextView: TextView
+    lateinit var titleTextView: TextView
     private var selectedStatue: Boolean = false
     private var parent: IndicatorLayout
-
-    companion object {
-        const val selectedTextColor = R.color.cf
-        const val unselectedTextColor = R.color.c1
-    }
-
 
     constructor(ctx: Context, parent: IndicatorLayout) : super(ctx) {
         init()
@@ -168,7 +168,7 @@ class TabView : LinearLayout {
         val param = LayoutParams(WRAP_CONTENT, MATCH_PARENT)
         addView(titleTextView, param)
 
-        titleTextView.setOnClickListener {
+        setOnClickListener {
             parent.updateIndicatorPosition(this, left, right)
         }
     }
@@ -180,14 +180,22 @@ class TabView : LinearLayout {
     fun setSelectedStatus(selected: Boolean) {
         selectedStatue = selected
         if (selected) {
-            titleTextView.setTextColor(resources.getColor(R.color.cf))
+            titleTextView.setTextColor(resources.getColor(ColorManager.selectedTextColor))
         } else {
-            titleTextView.setTextColor(resources.getColor(R.color.c1))
+            titleTextView.setTextColor(resources.getColor(ColorManager.unselectedTextColor))
         }
     }
 
 
 }
 
-//现在，给每一个TabView提供一个选中和取消选中的方法
+class ColorManager {
+    companion object {
+        const val selectedTextColor = R.color.c1
+        const val unselectedTextColor = R.color.cf
+    }
+}
+
+// 现在，给每一个TabView提供一个选中和取消选中的方法
 // 下一步，给IndicatorLayout提供一个方法，将indicator画在文字的正下方，等长
+// 现在，点击tab的时候，
