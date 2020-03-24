@@ -3,6 +3,8 @@ package com.zhou.studytablayout.ui.custom
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
+import android.graphics.Rect
+import android.graphics.RectF
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
@@ -42,7 +44,7 @@ class HankTabLayout : HorizontalScrollView {
     private lateinit var indicatorLayout: IndicatorLayout
 
     private fun init() {
-        indicatorLayout = IndicatorLayout(context)
+        indicatorLayout = IndicatorLayout(context, this)
         val layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, MATCH_PARENT)
         addView(indicatorLayout, layoutParams)
 
@@ -60,8 +62,9 @@ class HankTabLayout : HorizontalScrollView {
  * 中间层 可滚动的
  */
 class IndicatorLayout : LinearLayout {
-    constructor(ctx: Context) : super(ctx) {
+    constructor(ctx: Context, parent: HankTabLayout) : super(ctx) {
         init()
+        this.parent = parent
     }
 
     private fun init() {
@@ -71,6 +74,8 @@ class IndicatorLayout : LinearLayout {
 
     var indicatorLeft = 0
     var indicatorRight = 0
+
+    var parent: HankTabLayout
 
     /**
      * 作为一个viewGroup，有可能它不会执行自身的draw方法，这里有一个值去控制，好像是 setWillNotDraw
@@ -108,7 +113,8 @@ class IndicatorLayout : LinearLayout {
 
     var inited: Boolean = false
     private var indicatorAnimator: ValueAnimator = ValueAnimator.ofFloat(0f, 1f)
-
+    private val tabViewBounds = Rect()
+    private val parentBounds = Rect()
 
     /**
      * @param targetLeft
@@ -138,6 +144,25 @@ class IndicatorLayout : LinearLayout {
             start()
         }
 
+
+        // 处理最外层布局( HankTabLayout )的滑动
+        run {
+            tabView.getHitRect(tabViewBounds)
+            parent.getHitRect(parentBounds)
+            val scrolledX = parent.scrollX // 已经滑动过的距离
+            val tabViewRealLeft = tabViewBounds.left - scrolledX  // 真正的left, 要算上scrolledX
+            val tabViewRealRight = tabViewBounds.right - scrolledX // 真正的right, 要算上scrolledX
+
+            // 被选中的TabView，让他尽量处于正中间，由于 HorizontalScrollView 已经自动做了边界控制，所以scroll的时候不用担心越界问题
+            // 先计算得出tabView的中心位置
+            val tabViewCenterX = (tabViewRealLeft + tabViewRealRight) / 2
+            // 然后计算出parentBound的中心
+            val parentCenterX = (parentBounds.left + parentBounds.right) / 2
+            val toScrollX = -parentCenterX + tabViewCenterX //  差值就是需要滚动的距离
+            parent.scrollBy(toScrollX, 0) // 难道你自动做了边界控制？
+        }
+
+
         // 把其他的都设置成未选中状态
         for (i in 0 until childCount) {
             val current = getChildAt(i) as TabView
@@ -150,11 +175,17 @@ class IndicatorLayout : LinearLayout {
 
     }
 
-    /**
-     * 但是onDraw一定会执行
-     */
-    override fun onDraw(canvas: Canvas?) {
-        super.onDraw(canvas)
+    private fun calculateTabViewContentBounds(
+            tabView: TabView, contentBounds: RectF) {
+        var tabViewContentWidth = tabView.getContentWidth()
+        val minIndicatorWidth = dpToPx(context, 24f)
+        if (tabViewContentWidth < minIndicatorWidth) {
+            tabViewContentWidth = minIndicatorWidth
+        }
+        val tabViewCenter = (tabView.left + tabView.right) / 2
+        val contentLeftBounds = tabViewCenter - tabViewContentWidth / 2
+        val contentRightBounds = tabViewCenter + tabViewContentWidth / 2
+        contentBounds.set(contentLeftBounds.toFloat(), 0f, contentRightBounds.toFloat(), 0f)
     }
 
     /**
@@ -184,7 +215,7 @@ class IndicatorLayout : LinearLayout {
  * 最里层TabView
  */
 class TabView : LinearLayout {
-    lateinit var titleTextView: TextView
+    private lateinit var titleTextView: TextView
     private var selectedStatue: Boolean = false
     private var parent: IndicatorLayout
 
@@ -200,7 +231,6 @@ class TabView : LinearLayout {
         addView(titleTextView, param)
 
         setOnClickListener {
-            // 当tabView被点击的时候，底下的indicator应该是成动画效果，慢慢移动，而不是突然就跳过来
             parent.updateIndicatorPosition(this, left, right)
         }
     }
@@ -218,6 +248,19 @@ class TabView : LinearLayout {
         }
     }
 
+    fun getContentWidth(): Int {
+        var initialized = false
+        var left = 0
+        var right = 0
+        for (view in arrayOf<View>(titleTextView)) {
+            if (view != null && view.visibility == View.VISIBLE) {
+                left = if (initialized) Math.min(left, view.left) else view.left
+                right = if (initialized) Math.max(right, view.right) else view.right
+                initialized = true
+            }
+        }
+        return right - left
+    }
 
 }
 
@@ -230,4 +273,5 @@ class ColorManager {
 
 // 现在，给每一个TabView提供一个选中和取消选中的方法
 // 下一步，给IndicatorLayout提供一个方法，将indicator画在文字的正下方，等长
-// 现在，点击tab的时候，
+// 现在，点击tab的时候，同步滑动
+// 接下来，就是当点击到 被点击的tabView并不是完全处于屏幕之内时，应当把整个IndicatorLayout整体位移

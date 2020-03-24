@@ -25,13 +25,11 @@ class MainActivity : AppCompatActivity() {
         )
         tabLayout.setupWithViewPager(viewpager)
 
-        hankTabLayout.addTabView("哈哈哈哈哈哈")
-        hankTabLayout.addTabView("呵呵呵呵呵")
-        hankTabLayout.addTabView("呵呵呵呵呵")
-        hankTabLayout.addTabView("呵呵呵呵呵")
-        hankTabLayout.addTabView("呵呵呵呵呵")
-        hankTabLayout.addTabView("呵呵呵呵呵")
-        hankTabLayout.addTabView("呵呵呵呵呵")
+        for (i in 0 until 10) {
+            hankTabLayout.addTabView("title$i")
+        }
+
+
     }
 
 
