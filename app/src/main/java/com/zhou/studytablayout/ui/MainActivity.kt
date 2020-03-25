@@ -7,6 +7,7 @@ import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import com.zhou.studytablayout.R
 import kotlinx.android.synthetic.main.activity_main.*
+import java.lang.StringBuilder
 
 class MainActivity : AppCompatActivity() {
 
@@ -29,9 +30,8 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-
     class MyPagerAdapter(manager: FragmentManager) :
-            FragmentPagerAdapter(manager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
+        FragmentPagerAdapter(manager, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT) {
 
         override fun getItem(position: Int): Fragment {
             return MyFragment(position)
@@ -42,7 +42,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun getPageTitle(position: Int): CharSequence? {
-            return "栏目$position"
+            val stringBuilder = StringBuilder("栏目")
+            for (i in 0..position) {
+                stringBuilder.append("a")
+            }
+            return stringBuilder.toString()
         }
 
     }
