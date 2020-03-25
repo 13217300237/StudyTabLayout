@@ -4,6 +4,7 @@ import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Rect
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
@@ -46,6 +47,25 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         defStyleAttr
     ) {
         init()
+    }
+
+    // 自定义属性相关
+
+    // TabView相关属性
+    class TabViewAttrs {
+        var textSize: Int = 0 // 字体大小，单位dp
+        var textColor: Int = 0 // 字体颜色
+        var background: Int = 0 // 背景色
+        var textAppearance: Int = 0 // 字体整体风格
+        var textTypeface: Typeface? = null // 字体 指定ttf文件
+    }
+
+    class IndicatorAttrs {
+        var locationGravity: Int = Gravity.BOTTOM // 默认底部放置
+        var widthMode: Int = 0 // 长度模式，TabView长度的倍数，或者 定死长度，还是取 TextView长度的倍数
+        val height:Int = 0 // 高度，单位dp
+        val alignMode :Int = 0 // 对齐模式，如果长度小于TabView，应该向靠左还是靠右
+        val margin :Int = 0 // 根据 locationGravity 决定，如果是放在底部，就是与底部的距离
     }
 
     private lateinit var indicatorLayout: SlidingIndicatorLayout
