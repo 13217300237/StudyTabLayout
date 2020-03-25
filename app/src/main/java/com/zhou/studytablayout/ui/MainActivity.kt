@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
         val adapter2 = MyPagerAdapter(supportFragmentManager)
         hankViewpager.adapter = adapter2
         hankViewpager.offscreenPageLimit = 3
+        hankViewpager.setPageTransformer(true, MyPageTransformer(this, adapter.count))
         hankTabLayout.setupWithViewPager(hankViewpager)
 
     }

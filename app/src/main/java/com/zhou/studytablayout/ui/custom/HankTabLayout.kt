@@ -21,6 +21,7 @@ import androidx.core.view.setMargins
 import androidx.core.view.setPadding
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.viewpager.widget.ViewPager
+import androidx.viewpager.widget.ViewPager.SCROLL_STATE_DRAGGING
 import com.zhou.studytablayout.R
 import com.zhou.studytablayout.util.dpToPx
 import java.lang.ref.WeakReference
@@ -57,10 +58,10 @@ class HankTabLayout : HorizontalScrollView {
         indicatorLayout.addTabView(text)
     }
 
-    private lateinit var viewPager: ViewPager
+    lateinit var mViewPager: ViewPager
 
     fun setupWithViewPager(viewPager: ViewPager) {
-        this.viewPager = viewPager
+        this.mViewPager = viewPager
 
         // Add our custom OnPageChangeListener to the ViewPager
         pageChangeListener = MyTabPageChangeLis(this)
@@ -78,6 +79,27 @@ class HankTabLayout : HorizontalScrollView {
 
     }
 
+
+    fun scrollTabLayout(position: Int, positionOffset: Float) {
+        // 如果是向左, 就用当前的tabView滑动到左边一个tabView
+        val currentTabView = indicatorLayout.getChildAt(position) as TabView
+        val currentLeft = currentTabView.left
+        val currentRight = currentTabView.right
+
+        val nextTabView = indicatorLayout.getChildAt(position + 1)
+        if (nextTabView != null) {
+            val nextLeft = nextTabView.left
+            val nextRight = nextTabView.right
+
+            val leftDiff = nextLeft - currentLeft
+            val rightDiff = nextRight - currentRight
+
+            indicatorLayout.updateIndicatorPosition(
+                    currentLeft + (leftDiff * positionOffset).toInt(),
+                    currentRight + (rightDiff * positionOffset).toInt())
+        }
+    }
+
     private lateinit var pageChangeListener: MyTabPageChangeLis
 
     class MyTabPageChangeLis : ViewPager.OnPageChangeListener {
@@ -92,34 +114,33 @@ class HankTabLayout : HorizontalScrollView {
         override fun onPageScrollStateChanged(state: Int) {
             previousScrollState = scrollState
             scrollState = state
+
+            val tabLayout: HankTabLayout = tabLayoutRef.get() ?: return
+
+            if (state == SCROLL_STATE_DRAGGING) {
+                mCurrentPosition = tabLayout.mViewPager.currentItem
+            }
         }
 
         private var mCurrentPosition = 0
+
         override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
             val tabLayout: HankTabLayout = tabLayoutRef.get() ?: return
-            Log.d("onPageScrolled", "position:$position  || positionOffset:$positionOffset || positionOffsetPixels:$positionOffsetPixels")
-            // 先判定滑动方向
-//            tabLayout.indicatorLayout.getChildAt(position)
-            //  滑动，都是从自身，滑动到相邻的子view，所以可以拿到两个子view，把第一个子view的left作为开始，第二个子view的left作为结束
-            // right也是如此
-
-
-            // 方向可以确定了
-            //  现在知道当前position，并且知道目标position
-
-            // 先把这两个tabView拿出来
-            if (mCurrentPosition > position) {
-                Log.d("onPageScrolled", "向左")
-            } else {
-                Log.d("onPageScrolled", "向右")
-            }
-
+            tabLayout.scrollTabLayout(position,positionOffset)
         }
 
+        /**
+         * 这个方法有问题，明明还没滑动到2的位置，position已经显示为2了,
+         * 他奶奶的，他带有预测性质，预感到将要滑动到2，就提前变成2了，应该是fling手势导致
+         */
         override fun onPageSelected(position: Int) {
-            val tabLayout: HankTabLayout? = tabLayoutRef.get()
-            Log.d("onPageSelected", "position:$position")
-            mCurrentPosition = position  //
+            val tabLayout: HankTabLayout = tabLayoutRef.get() ?: return
+            Log.d("MyTabPageChangeLis", "onPageSelected--> position:$position")
+            // 如果他被选中，那么，让更新indicator的位置
+            val tabView = tabLayout.indicatorLayout.getChildAt(position) as TabView
+            if (tabView != null) {
+                tabLayout.indicatorLayout.updateIndicatorPositionByAnimator(tabView, tabView.left, tabView.right)
+            }
         }
 
     }
@@ -302,12 +323,14 @@ class TabView : LinearLayout {
 
     fun setTextView(textView: TextView) {
         titleTextView = textView
+        titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
         removeAllViews()
         val param = LayoutParams(WRAP_CONTENT, MATCH_PARENT)
         addView(titleTextView, param)
 
         setOnClickListener {
             parent.updateIndicatorPositionByAnimator(this, left, right)
+            parent.parent.mViewPager.currentItem = parent.indexOfChild(this)// 拿到viewPager，然后强制滑动到指定的page
         }
     }
 
