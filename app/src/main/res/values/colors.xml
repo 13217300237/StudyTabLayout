@@ -16,6 +16,8 @@
     <color name="c8">#DF8080</color>
     <color name="c9">#612828</color>
     <color name="c10">#553B39</color>
-    <color name="cf">#ffffff</color>
+    <color name="cf">#ffffffff</color>
+
+    <color name="c0">#ff000000</color>
 
 </resources>
