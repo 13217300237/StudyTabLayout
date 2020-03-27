@@ -302,7 +302,8 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     override fun onPageSelected(position: Int) {
         val tabView = indicatorLayout.getChildAt(position) as GreenTabView
         if (tabView != null) {
-            indicatorLayout.updateIndicatorPositionByAnimator(tabView, tabView.left, tabView.right)
+            //也许这里不应该再去更新indicator的位置，而是应该直接滚动最外层布局
+            indicatorLayout.updateIndicatorPositionByAnimator(tabView)
         }
     }
 }
@@ -350,9 +351,6 @@ class SlidingIndicatorLayout : LinearLayout {
                 top = 0 + margin
                 bottom = indicatorHeight + margin
             }
-            else -> {
-                throw RuntimeException("Indicator LocationGravity设置错误，仅支持 Gravity.BOTTOM和Gravity.TOP")
-            }
         }
 
         var selectedIndicator: Drawable = GradientDrawable()//  用一个drawable
@@ -366,7 +364,7 @@ class SlidingIndicatorLayout : LinearLayout {
                     ((indicatorRight - indicatorLeft) * parent.indicatorAttrs.indicatorWidthPercentages)
             }
             GreenTabLayout.IndicatorAttrs.WidthMode.EXACT -> {
-                indicatorWidth = parent.indicatorAttrs.indicatorExactWidth.toFloat()
+                indicatorWidth = parent.indicatorAttrs.indicatorExactWidth
             }
         }
 
@@ -426,35 +424,11 @@ class SlidingIndicatorLayout : LinearLayout {
     /**
      * 用动画平滑更新indicator的位置
      * @param tabView 当前这个子view
-     * @param targetLeft 目标left
-     * @param targetRight 目标right
      */
-    fun updateIndicatorPositionByAnimator(
-        tabView: GreenTabView,
-        targetLeft: Int,
-        targetRight: Int
-    ) {
-        val currentLeft = indicatorLeft
-        val currentRight = indicatorRight
-        val leftDiff = targetLeft - currentLeft
-        val rightDiff = targetRight - currentRight
+    fun updateIndicatorPositionByAnimator(tabView: GreenTabView) {
 
         if (indicatorAnimator != null)
             indicatorAnimator?.cancel()
-
-        // 这里应该有一个动画
-        indicatorAnimator.run {
-            duration = 200
-            interpolator = FastOutSlowInInterpolator()
-            addUpdateListener {
-                val progress = it.animatedValue as Float
-                indicatorLeft = currentLeft + (leftDiff * progress).toInt()
-                indicatorRight = currentRight + (rightDiff * progress).toInt()
-                postInvalidate()//  刷新自身，调用draw
-            }
-            start()
-        }
-
         // 处理最外层布局( HankTabLayout )的滑动
         parent.run {
             tabView.getHitRect(tabViewBounds)
@@ -510,18 +484,7 @@ class SlidingIndicatorLayout : LinearLayout {
         tabView.setTextView(textView)
 
         addView(tabView, param)
-        postInvalidate()
 
-    }
-
-    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        Log.d("onLayout", "测量")
-    }
-
-    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        super.onLayout(changed, l, t, r, b)
-        Log.d("onLayout", "布局")
     }
 }
 
@@ -562,7 +525,7 @@ class GreenTabView : LinearLayout {
         addView(titleTextView, param)
 
         setOnClickListener {
-            parent.updateIndicatorPositionByAnimator(this, left, right)
+            parent.updateIndicatorPositionByAnimator(this)
             parent.parent.mViewPager.currentItem =
                 parent.indexOfChild(this)// 拿到viewPager，然后强制滑动到指定的page
         }

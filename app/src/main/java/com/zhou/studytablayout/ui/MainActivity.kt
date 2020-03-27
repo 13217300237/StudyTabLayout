@@ -28,6 +28,8 @@ class MainActivity : AppCompatActivity() {
         hankViewpager.setPageTransformer(true, MyPageTransformer(this, adapter.count))
         hankTabLayout.setupWithViewPager(hankViewpager)
 
+        hankTabLayout2.setupWithViewPager(hankViewpager)
+
     }
 
     class MyPagerAdapter(manager: FragmentManager) :
