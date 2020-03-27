@@ -68,6 +68,10 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     }
 
     class IndicatorAttrs {
+        /**
+         *  indicator的弹性效果
+         */
+        var indicatorElastic: Boolean = false
         var indicatorColor: Int = 0
         /**
          * 支持 Gravity.BOTTOM 和 Gravity.TOP
@@ -238,6 +242,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
                     }
                 }
 
+                indicatorElastic = a.getBoolean(R.styleable.GreenTabLayout_indicatorElastic, false)
             }
         } finally {
             a?.recycle()
@@ -276,7 +281,8 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
 
             indicatorLayout.updateIndicatorPosition(
                 currentLeft + (leftDiff * positionOffset).toInt(),
-                currentRight + (rightDiff * positionOffset).toInt()
+                currentRight + (rightDiff * positionOffset).toInt(),
+                positionOffset
             )
         }
     }
@@ -308,9 +314,9 @@ class SlidingIndicatorLayout : LinearLayout {
 
     private var indicatorLeft = 0
     private var indicatorRight = 0
+    private var positionOffset = 0f
     var parent: GreenTabLayout
     private var inited: Boolean = false
-    private var indicatorAnimator: ValueAnimator = ValueAnimator.ofFloat(0f, 1f)
     private var scrollAnimator: ValueAnimator = ValueAnimator.ofFloat(0f, 1f)
     private val tabViewBounds = Rect()
     private val parentBounds = Rect()
@@ -363,6 +369,7 @@ class SlidingIndicatorLayout : LinearLayout {
                 parent.indicatorAttrs.indicatorColor
             )// 规定它的颜色
         }
+
         val tabViewWidth = indicatorRight - indicatorLeft
         var indicatorWidth = 0f
 
@@ -393,12 +400,27 @@ class SlidingIndicatorLayout : LinearLayout {
             }
         }
 
+        // 是否开启 indicator的弹性拉伸效果
+        var ratio =
+            if (parent.indicatorAttrs.indicatorElastic) {
+                when {
+                    positionOffset >= 0 && positionOffset < 0.5 -> {
+                        1 + positionOffset
+                    }
+                    else -> {
+                        2 - positionOffset
+                    }
+                }
+            } else 1f
+
+
+
         // 可以开始绘制
         selectedIndicator.run {
             setBounds(
-                ((centerX - indicatorWidth / 2).toInt()),
+                ((centerX - indicatorWidth * ratio / 2).toInt()),
                 top,
-                ((centerX + indicatorWidth / 2).toInt()),
+                ((centerX + indicatorWidth * ratio / 2).toInt()),
                 bottom
             )// 规定它的边界
             draw(canvas!!)// 然后绘制到画布上
@@ -419,10 +441,11 @@ class SlidingIndicatorLayout : LinearLayout {
         }
     }
 
-    fun updateIndicatorPosition(targetLeft: Int, targetRight: Int) {
+    fun updateIndicatorPosition(targetLeft: Int, targetRight: Int, positionOffset_: Float) {
         indicatorLeft = targetLeft
         indicatorRight = targetRight
-        postInvalidate()//
+        positionOffset = positionOffset_
+        postInvalidate()
     }
 
     /**
@@ -430,9 +453,6 @@ class SlidingIndicatorLayout : LinearLayout {
      * @param tabView 当前这个子view
      */
     fun updateIndicatorPositionByAnimator(tabView: GreenTabView) {
-
-        if (indicatorAnimator != null)
-            indicatorAnimator?.cancel()
         // 处理最外层布局( HankTabLayout )的滑动
         parent.run {
             tabView.getHitRect(tabViewBounds)
