@@ -258,7 +258,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         }
     }
 
-    private fun scrollTabLayout(position: Int, positionOffset: Float) {
+    fun scrollTabLayout(position: Int, positionOffset: Float) {
         // 如果是向左, 就用当前的tabView滑动到左边一个tabView
         val currentTabView = indicatorLayout.getChildAt(position) as GreenTabView
         val currentLeft = currentTabView.left
@@ -321,6 +321,12 @@ class SlidingIndicatorLayout : LinearLayout {
     private fun init() {
         setWillNotDraw(false) // 如果不这么做，它自身的draw方法就不会调用
         gravity = Gravity.CENTER_VERTICAL
+    }
+
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        super.onLayout(changed, l, t, r, b)
+        Log.d("SlidingIndicatorLayout","onLayout")
+        parent.scrollTabLayout(0, 0f)//
     }
 
     /**
