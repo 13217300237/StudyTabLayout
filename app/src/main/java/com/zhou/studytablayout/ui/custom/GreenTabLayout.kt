@@ -19,7 +19,6 @@ import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.graphics.drawable.DrawableCompat
-import androidx.core.view.setPadding
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SCROLL_STATE_DRAGGING
@@ -325,7 +324,7 @@ class SlidingIndicatorLayout : LinearLayout {
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
-        Log.d("SlidingIndicatorLayout","onLayout")
+        Log.d("SlidingIndicatorLayout", "onLayout")
         parent.scrollTabLayout(0, 0f)//
     }
 
@@ -473,9 +472,11 @@ class SlidingIndicatorLayout : LinearLayout {
      */
     fun addTabView(text: String) {
         val tabView = GreenTabView(context, this)
-        tabView.setPadding(dpToPx(context, 10f))
+        val margin = dpToPx(context, 10f)
+        tabView.setPadding(0, margin, 0, margin)
         val param = LayoutParams(WRAP_CONTENT, MATCH_PARENT)
         val textView = TextView(context)
+        param.setMargins(margin, 0, margin, 0)
         textView.text = text
         tabView.setTextView(textView)
 

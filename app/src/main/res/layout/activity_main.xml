@@ -47,7 +47,7 @@
         android:layout_height="wrap_content"
         android:background="@color/c4"
         android:visibility="visible"
-        app:indicatorAlignMode="CENTER"
+        app:indicatorAlignMode="LEFT"
         app:indicatorColor="@color/c8"
         app:indicatorExactWidth="20dp"
         app:indicatorHeight="3dp"
