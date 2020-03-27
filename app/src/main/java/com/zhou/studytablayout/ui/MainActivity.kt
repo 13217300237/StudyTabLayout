@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         override fun getPageTitle(position: Int): CharSequence? {
             val stringBuilder = StringBuilder("栏目")
             for (i in 0..position) {
-                stringBuilder.append("a")
+                stringBuilder.append("ab")
             }
             return stringBuilder.toString()
         }

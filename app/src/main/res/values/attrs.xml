@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="GreenTabLayout">
+
+        <attr name="tabViewTextSize" format="dimension|reference" />
+        <attr name="tabViewTextSizeSelected" format="dimension|reference" />
+        <attr name="tabViewTextColor" format="color|reference" />
+        <attr name="tabViewBackgroundColor" format="color|reference" />
+        <attr name="tabViewTextColorSelected" format="color|reference" />
+        <attr name="tabViewTextPaddingLeft" format="dimension|reference" />
+        <attr name="tabViewTextPaddingRight" format="dimension|reference" />
+        <attr name="tabViewTextPaddingTop" format="dimension|reference" />
+        <attr name="tabViewTextPaddingBottom" format="dimension|reference" />
+
+    </declare-styleable>
+</resources>
