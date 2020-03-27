@@ -12,5 +12,26 @@
         <attr name="tabViewTextPaddingTop" format="dimension|reference" />
         <attr name="tabViewTextPaddingBottom" format="dimension|reference" />
 
+
+        <attr name="indicatorColor" format="color|reference" />
+        <attr name="indicatorLocationGravity">
+            <enum name="TOP" value="0" />
+            <enum name="BOTTOM" value="1" />
+        </attr>
+        <attr name="indicatorWidthMode">
+            <enum name="RELATIVE_TAB_VIEW" value="0" />
+            <enum name="EXACT" value="1" />
+        </attr>
+        <attr name="indicatorWidthPercentages" format="float" />
+        <attr name="indicatorExactWidth" format="dimension|reference" />
+        <attr name="indicatorHeight" format="dimension|reference" />
+        <attr name="indicatorAlignMode">
+            <enum name="LEFT" value="0" />
+            <enum name="CENTER" value="1" />
+            <enum name="RIGHT" value="2" />
+        </attr>
+
+        <attr name="indicatorMargin" format="dimension|reference" />
+
     </declare-styleable>
 </resources>

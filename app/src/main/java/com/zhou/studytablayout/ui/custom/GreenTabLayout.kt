@@ -74,35 +74,40 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
          * 支持 Gravity.BOTTOM 和 Gravity.TOP
          * 设置其他属性，则默认为Gravity.BOTTOM
          */
-        var locationGravity: Int = 0
+        var indicatorLocationGravity: LocationGravity = LocationGravity.BOTTOM
+
+        enum class LocationGravity(v: Int) {
+            TOP(0),
+            BOTTOM(1)
+        }
 
         /**
          * 长度模式，TabView长度的倍数，或者 定死长度，还是取 TextView长度的倍数
          */
         var indicatorWidthMode: WidthMode? = null
 
+        enum class WidthMode(v: Int) {
+            RELATIVE_TAB_VIEW(0),// 取相对于TabView的长度的百分比(没有哪个傻缺会超过1，对吧?我就不做限制了)
+            EXACT(1)// 指定长度精确值
+        }
+
         /**
          * indicator的长度是TabView百分比长度，
-         * 如果值是1，那就是等长
+         * 如果值是1，那就是等长indicatorExactWidth
          */
         var indicatorWidthPercentages: Float = 0.5f
 
         /**
          * 精确长度，只有在width模式为EXACT的时候有效, 单位dp
          */
-        var indicatorExactWidth: Int = 0
+        var indicatorExactWidth: Float = 0f
 
-        enum class WidthMode {
-            RELATIVE_TAB_VIEW,// 取相对于TabView的长度的百分比(没有哪个傻缺会超过1，对吧?我就不做限制了)
-            EXACT// 指定长度精确值
-        }
-
-        var indicatorHeight: Int = 0 // 高度，单位dp
+        var indicatorHeight: Float = 0f // 高度，单位dp
 
         /**
          * 对齐模式
          */
-        var indicatorAlignMode: AlignMode? = null //
+        var indicatorAlignMode: AlignMode? = AlignMode.CENTER //
 
         enum class AlignMode(v: Int) {
             LEFT(0), // 靠左
@@ -110,7 +115,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
             RIGHT(2) // 靠右
         }
 
-        var indicatorMargin: Int = 0 // 根据 locationGravity 决定，如果是放在底部，就是与底部的距离
+        var indicatorMargin: Float = 0f // 根据 locationGravity 决定，如果是放在底部，就是与底部的距离
     }
 
     private lateinit var indicatorLayout: SlidingIndicatorLayout
@@ -123,14 +128,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
 
     private fun initIndicatorAttrs() {
         indicatorAttrs.run {
-            indicatorColor = R.color.c1
-            locationGravity = Gravity.BOTTOM
-            indicatorMargin = dpToPx(context, 5f)
-            indicatorHeight = dpToPx(context, 4f)
-            indicatorWidthPercentages = 0.8f
-            indicatorWidthMode = IndicatorAttrs.WidthMode.EXACT // 默认就是与 tabView等长
-            indicatorExactWidth = dpToPx(context, 20f)// 如果设定是精确模式，那么
-            indicatorAlignMode = IndicatorAttrs.AlignMode.CENTER //  默认居中
+
         }
     }
 
@@ -191,6 +189,63 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
             }
 
 
+            indicatorAttrs.run {
+                indicatorColor = a.getColor(R.styleable.GreenTabLayout_indicatorColor, 0)
+                indicatorMargin = a.getDimension(R.styleable.GreenTabLayout_indicatorMargin, 0f)
+                indicatorHeight = a.getDimension(R.styleable.GreenTabLayout_indicatorHeight, 0f)
+                indicatorWidthPercentages =
+                    a.getFloat(R.styleable.GreenTabLayout_indicatorWidthPercentages, 0f)
+                indicatorExactWidth =
+                    a.getDimension(R.styleable.GreenTabLayout_indicatorExactWidth, 0f)
+
+                // 处理枚举 LocationGravity
+                val locationGravity = a.getInteger(
+                    R.styleable.GreenTabLayout_indicatorLocationGravity,
+                    IndicatorAttrs.LocationGravity.TOP.ordinal
+                )
+                indicatorLocationGravity =
+                    when (locationGravity) {
+                        IndicatorAttrs.LocationGravity.TOP.ordinal -> {
+                            IndicatorAttrs.LocationGravity.TOP
+                        }
+                        else -> {
+                            IndicatorAttrs.LocationGravity.BOTTOM
+                        }
+                    }
+
+                // 处理枚举 widthModeW
+                val widthMode = a.getInteger(
+                    R.styleable.GreenTabLayout_indicatorWidthMode,
+                    IndicatorAttrs.WidthMode.RELATIVE_TAB_VIEW.ordinal
+                )
+                indicatorWidthMode =
+                    when (widthMode) {
+                        IndicatorAttrs.WidthMode.RELATIVE_TAB_VIEW.ordinal -> {
+                            IndicatorAttrs.WidthMode.RELATIVE_TAB_VIEW
+                        }
+                        else -> {
+                            IndicatorAttrs.WidthMode.EXACT
+                        }
+                    }
+
+                // 处理枚举 AlignMode
+                val alignMode = a.getInteger(
+                    R.styleable.GreenTabLayout_indicatorAlignMode,
+                    IndicatorAttrs.AlignMode.CENTER.ordinal
+                )
+                indicatorAlignMode = when (alignMode) {
+                    IndicatorAttrs.AlignMode.LEFT.ordinal -> {
+                        IndicatorAttrs.AlignMode.LEFT
+                    }
+                    IndicatorAttrs.AlignMode.CENTER.ordinal -> {
+                        IndicatorAttrs.AlignMode.CENTER
+                    }
+                    else -> {
+                        IndicatorAttrs.AlignMode.RIGHT
+                    }
+                }
+
+            }
         } finally {
             a?.recycle()
         }
@@ -282,16 +337,16 @@ class SlidingIndicatorLayout : LinearLayout {
     override fun draw(canvas: Canvas?) {
         var top: Int
         var bottom: Int
-        var margin: Int = parent.indicatorAttrs.indicatorMargin
-        var indicatorHeight: Int = parent.indicatorAttrs.indicatorHeight
+        var margin: Int = parent.indicatorAttrs.indicatorMargin.roundToInt()
+        var indicatorHeight: Int = parent.indicatorAttrs.indicatorHeight.roundToInt()
 
         // 处理属性 indicatorAttrs.locationGravity --> indicator的Gravity
-        when (parent.indicatorAttrs.locationGravity) {
-            Gravity.BOTTOM -> {
+        when (parent.indicatorAttrs.indicatorLocationGravity) {
+            GreenTabLayout.IndicatorAttrs.LocationGravity.BOTTOM -> {
                 top = height - indicatorHeight - margin
                 bottom = height - margin
             }
-            Gravity.TOP -> {
+            GreenTabLayout.IndicatorAttrs.LocationGravity.TOP -> {
                 top = 0 + margin
                 bottom = indicatorHeight + margin
             }
@@ -302,16 +357,16 @@ class SlidingIndicatorLayout : LinearLayout {
 
         var selectedIndicator: Drawable = GradientDrawable()//  用一个drawable
         val tabViewWidth = indicatorRight - indicatorLeft
-        var indicatorWidth = 0
+        var indicatorWidth = 0f
 
         // 处理属性 widthMode
         when (parent.indicatorAttrs.indicatorWidthMode) {
             GreenTabLayout.IndicatorAttrs.WidthMode.RELATIVE_TAB_VIEW -> {
                 indicatorWidth =
-                    ((indicatorRight - indicatorLeft) * parent.indicatorAttrs.indicatorWidthPercentages).toInt()
+                    ((indicatorRight - indicatorLeft) * parent.indicatorAttrs.indicatorWidthPercentages)
             }
             GreenTabLayout.IndicatorAttrs.WidthMode.EXACT -> {
-                indicatorWidth = parent.indicatorAttrs.indicatorExactWidth
+                indicatorWidth = parent.indicatorAttrs.indicatorExactWidth.toFloat()
             }
         }
 
@@ -320,29 +375,29 @@ class SlidingIndicatorLayout : LinearLayout {
         // 处理属性 alignMode
         when (parent.indicatorAttrs.indicatorAlignMode) {
             GreenTabLayout.IndicatorAttrs.AlignMode.LEFT -> {
-                centerX = ((indicatorLeft + indicatorRight - dif) / 2)
+                centerX = (((indicatorLeft + indicatorRight - dif) / 2).toInt())
             }
             GreenTabLayout.IndicatorAttrs.AlignMode.CENTER -> {
                 centerX =
                     ((indicatorLeft + indicatorRight) / 2) // 这个就是中心位置
             }
             GreenTabLayout.IndicatorAttrs.AlignMode.RIGHT -> {
-                centerX = ((indicatorLeft + indicatorRight + dif) / 2)
+                centerX = (((indicatorLeft + indicatorRight + dif) / 2).toInt())
             }
         }
 
         // 可以开始绘制
         selectedIndicator.run {
             setBounds(
-                (centerX - indicatorWidth / 2),
+                ((centerX - indicatorWidth / 2).toInt()),
                 top,
-                (centerX + indicatorWidth / 2),
+                ((centerX + indicatorWidth / 2).toInt()),
                 bottom
             )// 规定它的边界
 
             DrawableCompat.setTint(
                 this,
-                resources.getColor(parent.indicatorAttrs.indicatorColor)
+                parent.indicatorAttrs.indicatorColor
             )// 规定它的颜色
             draw(canvas!!)// 然后绘制到画布上
         }
@@ -459,6 +514,15 @@ class SlidingIndicatorLayout : LinearLayout {
 
     }
 
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+        Log.d("onLayout", "测量")
+    }
+
+    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
+        super.onLayout(changed, l, t, r, b)
+        Log.d("onLayout", "布局")
+    }
 }
 
 /**
@@ -479,7 +543,8 @@ class GreenTabView : LinearLayout {
         titleTextView = textView
         parent.parent.tabViewAttrs.run {
             titleTextView.setBackgroundColor(tabViewBackgroundColor)
-            titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSize)
+
+            titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
             titleTextView.typeface = tabViewTextTypeface
             titleTextView.setTextColor(tabViewTextColor)
             titleTextView.gravity = Gravity.CENTER
@@ -509,10 +574,10 @@ class GreenTabView : LinearLayout {
         parent.parent.tabViewAttrs.run {
             if (selected) {
                 titleTextView.setTextColor(tabViewTextColorSelected)
-                titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX,tabViewTextSizeSelected)
+                titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
             } else {
                 titleTextView.setTextColor(tabViewTextColor)
-                titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX,tabViewTextSize)
+                titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSize)
             }
         }
     }
