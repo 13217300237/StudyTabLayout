@@ -16,19 +16,10 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         val adapter = MyPagerAdapter(supportFragmentManager)
-        viewpager.adapter = adapter
-        viewpager.offscreenPageLimit = 3
-        viewpager.setPageTransformer(true, MyPageTransformer(this, adapter.count))
-        tabLayout.setupWithViewPager(viewpager)
-
-
-        val adapter2 = MyPagerAdapter(supportFragmentManager)
-        hankViewpager.adapter = adapter2
+        hankViewpager.adapter = adapter
         hankViewpager.offscreenPageLimit = 3
         hankViewpager.setPageTransformer(true, MyPageTransformer(this, adapter.count))
         hankTabLayout.setupWithViewPager(hankViewpager)
-
-        hankTabLayout2.setupWithViewPager(hankViewpager)
 
     }
 

@@ -126,15 +126,6 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     var tabViewAttrs: TabViewAttrs = TabViewAttrs()
     var indicatorAttrs: IndicatorAttrs = IndicatorAttrs()
 
-    private fun initIndicatorAttrs() {
-        indicatorAttrs.run {
-
-        }
-    }
-
-    private fun initTabViewAttrs() {
-        tabViewAttrs.tabViewTextTypeface = getFontTypeFace(context)
-    }
 
     private fun init(attrs: AttributeSet?, defStyleAttr: Int) {
         isHorizontalScrollBarEnabled = false  // 禁用滚动横条
@@ -144,8 +135,6 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         val layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, MATCH_PARENT)
         addView(indicatorLayout, layoutParams)
 
-        initTabViewAttrs()
-        initIndicatorAttrs()
 
         dealAttributeSet(attrs = attrs)
     }
@@ -156,6 +145,8 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         try {
             a = context.obtainStyledAttributes(attrs, R.styleable.GreenTabLayout)
             tabViewAttrs.run {
+                tabViewTextTypeface = getFontTypeFace(context)
+
                 tabViewTextSize =
                     a.getDimension(
                         R.styleable.GreenTabLayout_tabViewTextSize,

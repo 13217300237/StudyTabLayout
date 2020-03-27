@@ -10,19 +10,16 @@
 
 
     <androidx.viewpager.widget.ViewPager
-        android:id="@+id/viewpager"
+        android:id="@+id/hankViewpager"
         android:layout_width="match_parent"
         android:layout_height="200dp"
         android:layout_margin="20dp"
         android:clipChildren="false"
-        android:visibility="gone"
         tools:background="@color/design_default_color_secondary_variant" />
-
     <com.zhou.studytablayout.ui.custom.GreenTabLayout
         android:id="@+id/hankTabLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="20dp"
         android:background="@color/c4"
         android:visibility="visible"
         app:indicatorAlignMode="CENTER"
@@ -44,46 +41,7 @@
         app:tabViewTextSizeSelected="20sp"
         tools:layout_height="100dp" />
 
-    <androidx.viewpager.widget.ViewPager
-        android:id="@+id/hankViewpager"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_margin="20dp"
-        android:clipChildren="false"
-        tools:background="@color/design_default_color_secondary_variant" />
 
-    <com.zhou.studytablayout.ui.custom.GreenTabLayout
-        android:id="@+id/hankTabLayout2"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@color/c4"
-        app:indicatorAlignMode="LEFT"
-        app:indicatorColor="@color/c8"
-        app:indicatorExactWidth="20dp"
-        app:indicatorHeight="3dp"
-        app:indicatorLocationGravity="TOP"
-        app:indicatorMargin="2dp"
-        app:indicatorWidthMode="RELATIVE_TAB_VIEW"
-        app:indicatorWidthPercentages="0.5"
-        app:tabViewBackgroundColor="@color/c4"
-        app:tabViewTextColor="@color/cf"
-        app:tabViewTextColorSelected="@color/c3"
-        app:tabViewTextPaddingBottom="0dp"
-        app:tabViewTextPaddingLeft="0dp"
-        app:tabViewTextPaddingRight="0dp"
-        app:tabViewTextPaddingTop="0dp"
-        app:tabViewTextSize="10sp"
-        app:tabViewTextSizeSelected="20sp"
-        tools:layout_height="100dp" />
-
-    <com.google.android.material.tabs.TabLayout
-        android:id="@+id/tabLayout"
-        android:layout_width="match_parent"
-        android:layout_height="50dp"
-        android:visibility="gone"
-        app:tabMode="scrollable"
-        app:tabTextAppearance="@style/no_upcase"
-        tools:background="#cccccc" />
 
 
 </LinearLayout>
