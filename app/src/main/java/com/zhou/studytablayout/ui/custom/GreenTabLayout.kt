@@ -19,7 +19,7 @@ import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.graphics.drawable.DrawableCompat
-import androidx.core.view.setMargins
+import androidx.core.view.setPadding
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.viewpager.widget.ViewPager
 import androidx.viewpager.widget.ViewPager.SCROLL_STATE_DRAGGING
@@ -473,9 +473,8 @@ class SlidingIndicatorLayout : LinearLayout {
      */
     fun addTabView(text: String) {
         val tabView = GreenTabView(context, this)
-        val param = LayoutParams(WRAP_CONTENT, WRAP_CONTENT)
-        param.setMargins(dpToPx(context, 10f))
-
+        tabView.setPadding(dpToPx(context, 10f))
+        val param = LayoutParams(WRAP_CONTENT, MATCH_PARENT)
         val textView = TextView(context)
         textView.text = text
         tabView.setTextView(textView)
