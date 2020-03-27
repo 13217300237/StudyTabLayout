@@ -19,5 +19,6 @@
     <color name="cf">#ffffffff</color>
 
     <color name="c0">#ff000000</color>
+    <color name="c_11">#00ffffff</color>
 
 </resources>

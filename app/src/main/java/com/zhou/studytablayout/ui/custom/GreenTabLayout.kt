@@ -164,16 +164,18 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
                     )
                 tabViewTextColor = a.getColor(
                     R.styleable.GreenTabLayout_tabViewTextColor,
-                    resources.getColor(R.color.cf)
+                    resources.getColor(R.color.c1)
                 )
                 tabViewTextColorSelected = a.getColor(
                     R.styleable.GreenTabLayout_tabViewTextColorSelected,
-                    resources.getColor(R.color.c4)
+                    resources.getColor(R.color.c3)
                 )
+
                 tabViewBackgroundColor = a.getColor(
                     R.styleable.GreenTabLayout_tabViewBackgroundColor,
-                    resources.getColor(R.color.c10)
+                    resources.getColor(R.color.c_11)
                 )
+
                 tabViewTextPaddingLeft =
                     a.getDimension(R.styleable.GreenTabLayout_tabViewTextPaddingLeft, 5f)
                 tabViewTextPaddingRight =
@@ -186,19 +188,29 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
 
 
             indicatorAttrs.run {
-                indicatorColor = a.getColor(R.styleable.GreenTabLayout_indicatorColor, 0)
+                indicatorColor = a.getColor(
+                    R.styleable.GreenTabLayout_indicatorColor,
+                    resources.getColor(R.color.c3)
+                )
                 indicatorMargin = a.getDimension(R.styleable.GreenTabLayout_indicatorMargin, 0f)
                 indicatorDrawable = a.getDrawable(R.styleable.GreenTabLayout_indicatorDrawable)
-                indicatorHeight = a.getDimension(R.styleable.GreenTabLayout_indicatorHeight, 0f)
+                indicatorHeight =
+                    a.getDimension(
+                        R.styleable.GreenTabLayout_indicatorHeight,
+                        dpToPx(context, 4f).toFloat()
+                    )
                 indicatorWidthPercentages =
-                    a.getFloat(R.styleable.GreenTabLayout_indicatorWidthPercentages, 0f)
+                    a.getFloat(R.styleable.GreenTabLayout_indicatorWidthPercentages, 1f)
                 indicatorExactWidth =
-                    a.getDimension(R.styleable.GreenTabLayout_indicatorExactWidth, 0f)
+                    a.getDimension(
+                        R.styleable.GreenTabLayout_indicatorExactWidth,
+                        dpToPx(context, 20f).toFloat()
+                    )
 
                 // 处理枚举 LocationGravity
                 val locationGravity = a.getInteger(
                     R.styleable.GreenTabLayout_indicatorLocationGravity,
-                    IndicatorAttrs.LocationGravity.TOP.ordinal
+                    IndicatorAttrs.LocationGravity.BOTTOM.ordinal
                 )
                 indicatorLocationGravity =
                     when (locationGravity) {
@@ -242,7 +254,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
                     }
                 }
 
-                indicatorElastic = a.getBoolean(R.styleable.GreenTabLayout_indicatorElastic, false)
+                indicatorElastic = a.getBoolean(R.styleable.GreenTabLayout_indicatorElastic, true)
             }
         } finally {
             a?.recycle()
@@ -412,7 +424,6 @@ class SlidingIndicatorLayout : LinearLayout {
                     }
                 }
             } else 1f
-
 
 
         // 可以开始绘制
