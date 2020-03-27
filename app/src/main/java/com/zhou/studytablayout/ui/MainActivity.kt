@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import com.zhou.studytablayout.R
+import com.zhou.studytablayout.ui.custom.GreenTabLayout
 import kotlinx.android.synthetic.main.activity_main.*
 import java.lang.StringBuilder
 
@@ -37,7 +38,7 @@ class MainActivity : AppCompatActivity() {
         override fun getPageTitle(position: Int): CharSequence? {
             val stringBuilder = StringBuilder("栏目")
             for (i in 0..position) {
-                stringBuilder.append("ab")
+                stringBuilder.append("1")
             }
             return stringBuilder.toString()
         }

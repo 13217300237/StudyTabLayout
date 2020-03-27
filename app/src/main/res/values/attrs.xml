@@ -32,6 +32,7 @@
         </attr>
 
         <attr name="indicatorMargin" format="dimension|reference" />
+        <attr name="indicatorDrawable" format="reference"/>
 
     </declare-styleable>
 </resources>

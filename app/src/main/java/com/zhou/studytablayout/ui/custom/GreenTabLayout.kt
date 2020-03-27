@@ -115,6 +115,8 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         }
 
         var indicatorMargin: Float = 0f // 根据 locationGravity 决定，如果是放在底部，就是与底部的距离
+
+        var indicatorDrawable: Drawable? = null // 默认drawable
     }
 
     private lateinit var indicatorLayout: SlidingIndicatorLayout
@@ -182,6 +184,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
             indicatorAttrs.run {
                 indicatorColor = a.getColor(R.styleable.GreenTabLayout_indicatorColor, 0)
                 indicatorMargin = a.getDimension(R.styleable.GreenTabLayout_indicatorMargin, 0f)
+                indicatorDrawable = a.getDrawable(R.styleable.GreenTabLayout_indicatorDrawable)
                 indicatorHeight = a.getDimension(R.styleable.GreenTabLayout_indicatorHeight, 0f)
                 indicatorWidthPercentages =
                     a.getFloat(R.styleable.GreenTabLayout_indicatorWidthPercentages, 0f)
@@ -349,7 +352,17 @@ class SlidingIndicatorLayout : LinearLayout {
             }
         }
 
-        var selectedIndicator: Drawable = GradientDrawable()//  用一个drawable
+
+        var selectedIndicator: Drawable
+        if (null != parent.indicatorAttrs.indicatorDrawable) {// 如果drawable是空，那就涂颜色
+            selectedIndicator = parent.indicatorAttrs.indicatorDrawable!!
+        } else {
+            selectedIndicator = GradientDrawable()
+            DrawableCompat.setTint(
+                selectedIndicator,
+                parent.indicatorAttrs.indicatorColor
+            )// 规定它的颜色
+        }
         val tabViewWidth = indicatorRight - indicatorLeft
         var indicatorWidth = 0f
 
@@ -388,11 +401,6 @@ class SlidingIndicatorLayout : LinearLayout {
                 ((centerX + indicatorWidth / 2).toInt()),
                 bottom
             )// 规定它的边界
-
-            DrawableCompat.setTint(
-                this,
-                parent.indicatorAttrs.indicatorColor
-            )// 规定它的颜色
             draw(canvas!!)// 然后绘制到画布上
         }
 
