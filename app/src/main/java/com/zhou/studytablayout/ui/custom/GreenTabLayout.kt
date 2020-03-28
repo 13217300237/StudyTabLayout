@@ -55,6 +55,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
 
     // TabView相关属性
     class TabViewAttrs {
+        var tabViewDynamicSizeWhenScrolling: Boolean = true // 是否支持 滚动ViewPager时，tabView的字体大小动态变化
         var tabViewTextSize: Float = 0f // 字体大小，单位sp
         var tabViewTextSizeSelected: Float = 0f // 选中的字体大小
         var tabViewTextColor: Int = 0 // 字体颜色
@@ -188,6 +189,9 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
                     a.getDimension(R.styleable.GreenTabLayout_tabViewTextPaddingTop, 5f)
                 tabViewTextPaddingBottom =
                     a.getDimension(R.styleable.GreenTabLayout_tabViewTextPaddingBottom, 5f)
+
+                tabViewDynamicSizeWhenScrolling =
+                    a.getBoolean(R.styleable.GreenTabLayout_tabViewDynamicSizeWhenScrolling, true)
             }
 
 
@@ -261,6 +265,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
                 indicatorElastic = a.getBoolean(R.styleable.GreenTabLayout_indicatorElastic, true)
                 indicatorElasticBaseMultiple =
                     a.getFloat(R.styleable.GreenTabLayout_indicatorElasticBaseMultiple, 1f)
+
             }
         } finally {
             a?.recycle()
@@ -300,35 +305,39 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         val nextTabView = indicatorLayout.getChildAt(position + 1) // 目标TabView
         if (nextTabView != null) {
 
-            if (positionOffset != 0f) {
-                // 在这里，让当前字体变小，next的字体变大
-                val diffSize =
-                    tabViewAttrs.tabViewTextSizeSelected - tabViewAttrs.tabViewTextSize
-                when (mScrollState) {
-                    ViewPager.SCROLL_STATE_DRAGGING -> {
-                        currentTabViewTextSizeRealtime =
-                            tabViewAttrs.tabViewTextSizeSelected - diffSize * positionOffset
-                        currentTabView.titleTextView.setTextSize(
-                            TypedValue.COMPLEX_UNIT_PX,
-                            currentTabViewTextSizeRealtime
-                        )
+            // 处理属性 tabViewDynamicSizeWhenScrolling
+            if (tabViewAttrs.tabViewDynamicSizeWhenScrolling) {
+                if (positionOffset != 0f) {
+                    // 在这里，让当前字体变小，next的字体变大
+                    val diffSize =
+                        tabViewAttrs.tabViewTextSizeSelected - tabViewAttrs.tabViewTextSize
+                    when (mScrollState) {
+                        ViewPager.SCROLL_STATE_DRAGGING -> {
+                            currentTabViewTextSizeRealtime =
+                                tabViewAttrs.tabViewTextSizeSelected - diffSize * positionOffset
+                            currentTabView.titleTextView.setTextSize(
+                                TypedValue.COMPLEX_UNIT_PX,
+                                currentTabViewTextSizeRealtime
+                            )
 
-                        nextTabViewTextSizeRealtime =
-                            tabViewAttrs.tabViewTextSize + diffSize * positionOffset
-                        (nextTabView as GreenTabView).titleTextView.setTextSize(
-                            TypedValue.COMPLEX_UNIT_PX,
-                            nextTabViewTextSizeRealtime
-                        )
-                    }
-                    ViewPager.SCROLL_STATE_SETTLING -> {
-                        // OK，定位到问题，在 mScrollState 为setting状态时，positionOffset的变化没有 draging时那么细致
-                        // 只要不处理 SETTING下的字体大小变化，也可以达成效果
-                        indicatorLayout.resetTabViewsStatue(indicatorLayout.get(mCurrentPosition) as GreenTabView)
+                            nextTabViewTextSizeRealtime =
+                                tabViewAttrs.tabViewTextSize + diffSize * positionOffset
+                            (nextTabView as GreenTabView).titleTextView.setTextSize(
+                                TypedValue.COMPLEX_UNIT_PX,
+                                nextTabViewTextSizeRealtime
+                            )
+                        }
+                        ViewPager.SCROLL_STATE_SETTLING -> {
+                            // OK，定位到问题，在 mScrollState 为setting状态时，positionOffset的变化没有 draging时那么细致
+                            // 只要不处理 SETTING下的字体大小变化，也可以达成效果
+                            indicatorLayout.resetTabViewsStatue(indicatorLayout[mCurrentPosition] as GreenTabView)
+                        }
                     }
                 }
             }
 
 
+            // 滚动tabView，使得被选中的TabView尽量处于正中
             val nextLeft = nextTabView.left
             val nextRight = nextTabView.right
 

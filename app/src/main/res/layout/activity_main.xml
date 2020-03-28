@@ -38,6 +38,7 @@
             app:indicatorDrawable="@mipmap/indicator"
             app:indicatorElastic="true"
             app:tabViewTextSize="15sp"
+            app:tabViewDynamicSizeWhenScrolling="true"
             app:tabViewTextSizeSelected="30sp"
             app:indicatorElasticBaseMultiple="2.0"
             app:indicatorLocationGravity="BOTTOM"

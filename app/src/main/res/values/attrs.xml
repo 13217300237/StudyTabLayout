@@ -11,7 +11,7 @@
         <attr name="tabViewTextPaddingRight" format="dimension|reference" />
         <attr name="tabViewTextPaddingTop" format="dimension|reference" />
         <attr name="tabViewTextPaddingBottom" format="dimension|reference" />
-
+        <attr name="tabViewDynamicSizeWhenScrolling" format="boolean" />
 
         <attr name="indicatorColor" format="color|reference" />
         <attr name="indicatorLocationGravity">
