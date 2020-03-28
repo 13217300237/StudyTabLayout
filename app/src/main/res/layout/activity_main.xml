@@ -11,20 +11,6 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:clipChildren="false">
-
-        <androidx.viewpager.widget.ViewPager
-            android:id="@+id/hankViewpager"
-            android:layout_width="match_parent"
-            android:layout_height="200dp"
-            android:layout_margin="20dp"
-            android:clipChildren="false"
-            tools:background="@color/design_default_color_secondary_variant" />
-    </FrameLayout>
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:layout_marginLeft="20dp"
         android:layout_marginRight="20dp"
         android:clipChildren="true">
@@ -40,9 +26,24 @@
             app:indicatorElastic="true"
             app:indicatorElasticBaseMultiple="2.0"
             app:indicatorDrawable="@mipmap/indicator"
-            app:indicatorLocationGravity="TOP"
+            app:indicatorLocationGravity="BOTTOM"
             tools:layout_height="100dp" />
     </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipChildren="false">
+
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/hankViewpager"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_margin="20dp"
+            android:clipChildren="false"
+            tools:background="@color/design_default_color_secondary_variant" />
+    </FrameLayout>
+
 
 
 </LinearLayout>

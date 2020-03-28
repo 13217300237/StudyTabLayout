@@ -21,7 +21,6 @@ import android.widget.TextView
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.viewpager.widget.ViewPager
-import androidx.viewpager.widget.ViewPager.SCROLL_STATE_DRAGGING
 import com.zhou.studytablayout.R
 import com.zhou.studytablayout.util.dpToPx
 import com.zhou.studytablayout.util.getFontTypeFace
@@ -130,8 +129,6 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     }
 
     private lateinit var indicatorLayout: SlidingIndicatorLayout
-    private var mCurrentPosition = 0
-    private var scrollState = 0
     lateinit var mViewPager: ViewPager
 
     var tabViewAttrs: TabViewAttrs = TabViewAttrs()
@@ -291,7 +288,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         val currentLeft = currentTabView.left
         val currentRight = currentTabView.right
 
-        val nextTabView = indicatorLayout.getChildAt(position + 1)
+        val nextTabView = indicatorLayout.getChildAt(position + 1) // 目标TabView
         if (nextTabView != null) {
             val nextLeft = nextTabView.left
             val nextRight = nextTabView.right
@@ -307,18 +304,53 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         }
     }
 
-    override fun onPageScrollStateChanged(state: Int) {
-        scrollState = state
-        if (state == SCROLL_STATE_DRAGGING) {
-            mCurrentPosition = mViewPager.currentItem
+
+    private var mCurrentPositionOffset = 0f
+
+    /**
+     * 判断滑动的方向
+     */
+    private fun judgeScrollDirection(positionOffset: Float) {
+        when {
+            positionOffset == mCurrentPositionOffset -> {
+                //不作处理
+            }
+            positionOffset > mCurrentPositionOffset -> {
+                //从左向右滑
+                mCurrentPositionOffset = positionOffset
+
+                if (mScrollState == ViewPager.SCROLL_STATE_DRAGGING) {
+                    Log.d("judgeScrollDirection", "--------->>> $mCurrentPosition ${mCurrentPosition + 1}")
+                }
+            }
+            positionOffset < mCurrentPositionOffset -> {
+                mCurrentPositionOffset = positionOffset
+                if (mScrollState == ViewPager.SCROLL_STATE_DRAGGING) {
+                    Log.d("judgeScrollDirection", "<<<--------- $mCurrentPosition ${mCurrentPosition - 1}")
+                }
+            }
         }
     }
 
+    private var mScrollState: Int = ViewPager.SCROLL_STATE_IDLE
+    /**
+     * @see ViewPager#SCROLL_STATE_IDLE
+     * @see ViewPager#SCROLL_STATE_DRAGGING
+     * @see ViewPager#SCROLL_STATE_SETTLING
+     */
+    override fun onPageScrollStateChanged(state: Int) {
+        mScrollState = state
+    }
+
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
+        Log.d("positionOffset", "$positionOffset")
+        judgeScrollDirection(positionOffset)
         scrollTabLayout(position, positionOffset)
     }
 
+    var mCurrentPosition = 0
     override fun onPageSelected(position: Int) {
+        mCurrentPosition = position
         val tabView = indicatorLayout.getChildAt(position) as GreenTabView
         if (tabView != null) {
             //也许这里不应该再去更新indicator的位置，而是应该直接滚动最外层布局
@@ -421,7 +453,6 @@ class SlidingIndicatorLayout : LinearLayout {
         }
 
         // 是否开启 indicator的弹性拉伸效果
-
         // 计算临界值
         val baseMultiple = parent.indicatorAttrs.indicatorElasticBaseMultiple // 基础倍数,决定拉伸的最大程度
         val basePositionOffsetCriticalValue = 0.5f // positionOffset的中值
@@ -445,6 +476,8 @@ class SlidingIndicatorLayout : LinearLayout {
                 }
             } else 1f
 
+        // 能不能一边draw一边改变 TabView里面TextView的textSize呢？
+        // 这里能够获取到
 
         // 可以开始绘制
         selectedIndicator.run {
