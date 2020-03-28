@@ -19,6 +19,7 @@ import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.core.graphics.drawable.DrawableCompat
+import androidx.core.view.get
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 import androidx.viewpager.widget.ViewPager
 import com.zhou.studytablayout.R
@@ -322,8 +323,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
                     ViewPager.SCROLL_STATE_SETTLING -> {
                         // OK，定位到问题，在 mScrollState 为setting状态时，positionOffset的变化没有 draging时那么细致
                         // 只要不处理 SETTING下的字体大小变化，也可以达成效果
-                        //
-                        indicatorLayout.updateIndicatorPositionByAnimator(mCurrentPosition)
+                        indicatorLayout.resetTabViewsStatue(indicatorLayout.get(mCurrentPosition) as GreenTabView)
                     }
                 }
             }
@@ -548,6 +548,10 @@ class SlidingIndicatorLayout : LinearLayout {
             startScrollAnimator(this, scrolledX, scrolledX + needToScrollX)
         }
 
+        resetTabViewsStatue(tabView)
+    }
+
+    fun resetTabViewsStatue(tabView: GreenTabView) {
         // 把其他的 TabView 都设置成未选中状态
         for (i in 0 until childCount) {
             val current = getChildAt(i) as GreenTabView
