@@ -35,10 +35,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         override fun getPageTitle(position: Int): CharSequence? {
-            val stringBuilder = StringBuilder("栏目")
-            for (i in 0..position) {
-                stringBuilder.append("1")
-            }
+            val stringBuilder = StringBuilder("栏目$position")
+//            for (i in 0..position) {
+//                stringBuilder.append("$position")
+//            }
             return stringBuilder.toString()
         }
 

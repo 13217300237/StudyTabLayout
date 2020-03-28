@@ -282,6 +282,11 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         }
     }
 
+    /**
+     * 这段代码值得研究，无论左右，都是position+1即可
+     *
+     * TODO 一定要研究
+     */
     fun scrollTabLayout(position: Int, positionOffset: Float) {
         // 如果是向左, 就用当前的tabView滑动到左边一个tabView
         val currentTabView = indicatorLayout.getChildAt(position) as GreenTabView
@@ -290,6 +295,27 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
 
         val nextTabView = indicatorLayout.getChildAt(position + 1) // 目标TabView
         if (nextTabView != null) {
+
+            if (positionOffset != 0f) {
+                // 在这里，让当前字体变小，next的字体变大
+                val diffSize = tabViewAttrs.tabViewTextSizeSelected - tabViewAttrs.tabViewTextSize
+                currentTabView.titleTextView.setTextSize(
+                    TypedValue.COMPLEX_UNIT_PX,
+                    tabViewAttrs.tabViewTextSizeSelected - diffSize * positionOffset
+                )
+                (nextTabView as GreenTabView).titleTextView.setTextSize(
+                    TypedValue.COMPLEX_UNIT_PX,
+                    tabViewAttrs.tabViewTextSize + diffSize * positionOffset
+                )
+
+                Log.d(
+                    "setTextSizeTag",
+                    "nextTabView : ${tabViewAttrs.tabViewTextSize + diffSize * positionOffset}"
+                )
+                Log.d("positionOffsetTag", "$positionOffset")
+            }
+
+
             val nextLeft = nextTabView.left
             val nextRight = nextTabView.right
 
@@ -319,15 +345,21 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
                 //从左向右滑
                 mCurrentPositionOffset = positionOffset
 
-                if (mScrollState == ViewPager.SCROLL_STATE_DRAGGING) {
-                    Log.d("judgeScrollDirection", "--------->>> $mCurrentPosition ${mCurrentPosition + 1}")
-                }
+//                if (mScrollState == ViewPager.SCROLL_STATE_DRAGGING) {
+                Log.d(
+                    "judgeScrollDirection",
+                    "--------->>> $mCurrentPosition ${mCurrentPosition + 1}  positionOffset:$positionOffset"
+                )
+//                }
             }
             positionOffset < mCurrentPositionOffset -> {
                 mCurrentPositionOffset = positionOffset
-                if (mScrollState == ViewPager.SCROLL_STATE_DRAGGING) {
-                    Log.d("judgeScrollDirection", "<<<--------- $mCurrentPosition ${mCurrentPosition - 1}")
-                }
+//                if (mScrollState == ViewPager.SCROLL_STATE_DRAGGING) {
+                Log.d(
+                    "judgeScrollDirection",
+                    "<<<--------- $mCurrentPosition ${mCurrentPosition - 1}   positionOffset:$positionOffset"
+                )
+//                }
             }
         }
     }
@@ -386,7 +418,8 @@ class SlidingIndicatorLayout : LinearLayout {
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
         Log.d("SlidingIndicatorLayout", "onLayout")
-        parent.scrollTabLayout(0, 0f)//
+        if (!inited)
+            parent.scrollTabLayout(0, 0f)//
     }
 
     /**
@@ -581,7 +614,7 @@ class SlidingIndicatorLayout : LinearLayout {
  * 最里层TabView
  */
 class GreenTabView : LinearLayout {
-    private lateinit var titleTextView: TextView
+    lateinit var titleTextView: TextView
     private var selectedStatue: Boolean = false
     private var parent: SlidingIndicatorLayout
 
@@ -597,6 +630,11 @@ class GreenTabView : LinearLayout {
             titleTextView.setBackgroundColor(tabViewBackgroundColor)
 
             titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
+            Log.d(
+                "setTextSizeTag",
+                "初始，选中状态下的字体大小 : ${tabViewTextSizeSelected}"
+            )
+
             titleTextView.typeface = tabViewTextTypeface
             titleTextView.setTextColor(tabViewTextColor)
             titleTextView.gravity = Gravity.CENTER
@@ -627,9 +665,17 @@ class GreenTabView : LinearLayout {
             if (selected) {
                 titleTextView.setTextColor(tabViewTextColorSelected)
                 titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
+                Log.d(
+                    "setTextSizeTag",
+                    "变为选中 : $tabViewTextSizeSelected"
+                )
             } else {
                 titleTextView.setTextColor(tabViewTextColor)
                 titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSize)
+                Log.d(
+                    "setTextSizeTag",
+                    "变为不选中 : $tabViewTextSize"
+                )
             }
         }
     }
