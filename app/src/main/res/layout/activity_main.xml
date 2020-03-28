@@ -38,8 +38,8 @@
             app:indicatorWidthMode="RELATIVE_TAB_VIEW"
             app:indicatorWidthPercentages="0.8"
             app:indicatorElastic="true"
-            app:indicatorElasticBaseMultiple="5.0"
-            app:indicatorDrawable="@drawable/indicator2"
+            app:indicatorElasticBaseMultiple="2.0"
+            app:indicatorDrawable="@mipmap/indicator"
             app:indicatorLocationGravity="TOP"
             tools:layout_height="100dp" />
     </FrameLayout>
