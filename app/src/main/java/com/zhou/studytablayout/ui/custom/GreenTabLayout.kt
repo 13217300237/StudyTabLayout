@@ -282,6 +282,9 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         }
     }
 
+    private var currentTabViewTextSizeRealtime = 0f
+    private var nextTabViewTextSizeRealtime = 0f
+
     /**
      * 这段代码值得研究，无论左右，都是position+1即可
      *
@@ -298,21 +301,31 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
 
             if (positionOffset != 0f) {
                 // 在这里，让当前字体变小，next的字体变大
-                val diffSize = tabViewAttrs.tabViewTextSizeSelected - tabViewAttrs.tabViewTextSize
-                currentTabView.titleTextView.setTextSize(
-                    TypedValue.COMPLEX_UNIT_PX,
-                    tabViewAttrs.tabViewTextSizeSelected - diffSize * positionOffset
-                )
-                (nextTabView as GreenTabView).titleTextView.setTextSize(
-                    TypedValue.COMPLEX_UNIT_PX,
-                    tabViewAttrs.tabViewTextSize + diffSize * positionOffset
-                )
+                val diffSize =
+                    tabViewAttrs.tabViewTextSizeSelected - tabViewAttrs.tabViewTextSize
+                when (mScrollState) {
+                    ViewPager.SCROLL_STATE_DRAGGING -> {
+                        currentTabViewTextSizeRealtime =
+                            tabViewAttrs.tabViewTextSizeSelected - diffSize * positionOffset
+                        currentTabView.titleTextView.setTextSize(
+                            TypedValue.COMPLEX_UNIT_PX,
+                            currentTabViewTextSizeRealtime
+                        )
 
-                Log.d(
-                    "setTextSizeTag",
-                    "nextTabView : ${tabViewAttrs.tabViewTextSize + diffSize * positionOffset}"
-                )
-                Log.d("positionOffsetTag", "$positionOffset")
+                        nextTabViewTextSizeRealtime =
+                            tabViewAttrs.tabViewTextSize + diffSize * positionOffset
+                        (nextTabView as GreenTabView).titleTextView.setTextSize(
+                            TypedValue.COMPLEX_UNIT_PX,
+                            nextTabViewTextSizeRealtime
+                        )
+                    }
+                    ViewPager.SCROLL_STATE_SETTLING -> {
+                        // OK，定位到问题，在 mScrollState 为setting状态时，positionOffset的变化没有 draging时那么细致
+                        // 只要不处理 SETTING下的字体大小变化，也可以达成效果
+                        //
+                        indicatorLayout.updateIndicatorPositionByAnimator(mCurrentPosition)
+                    }
+                }
             }
 
 
@@ -330,40 +343,6 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         }
     }
 
-
-    private var mCurrentPositionOffset = 0f
-
-    /**
-     * 判断滑动的方向
-     */
-    private fun judgeScrollDirection(positionOffset: Float) {
-        when {
-            positionOffset == mCurrentPositionOffset -> {
-                //不作处理
-            }
-            positionOffset > mCurrentPositionOffset -> {
-                //从左向右滑
-                mCurrentPositionOffset = positionOffset
-
-//                if (mScrollState == ViewPager.SCROLL_STATE_DRAGGING) {
-                Log.d(
-                    "judgeScrollDirection",
-                    "--------->>> $mCurrentPosition ${mCurrentPosition + 1}  positionOffset:$positionOffset"
-                )
-//                }
-            }
-            positionOffset < mCurrentPositionOffset -> {
-                mCurrentPositionOffset = positionOffset
-//                if (mScrollState == ViewPager.SCROLL_STATE_DRAGGING) {
-                Log.d(
-                    "judgeScrollDirection",
-                    "<<<--------- $mCurrentPosition ${mCurrentPosition - 1}   positionOffset:$positionOffset"
-                )
-//                }
-            }
-        }
-    }
-
     private var mScrollState: Int = ViewPager.SCROLL_STATE_IDLE
     /**
      * @see ViewPager#SCROLL_STATE_IDLE
@@ -376,18 +355,13 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
 
     override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
         Log.d("positionOffset", "$positionOffset")
-        judgeScrollDirection(positionOffset)
         scrollTabLayout(position, positionOffset)
     }
 
     var mCurrentPosition = 0
     override fun onPageSelected(position: Int) {
         mCurrentPosition = position
-        val tabView = indicatorLayout.getChildAt(position) as GreenTabView
-        if (tabView != null) {
-            //也许这里不应该再去更新indicator的位置，而是应该直接滚动最外层布局
-            indicatorLayout.updateIndicatorPositionByAnimator(tabView)
-        }
+        indicatorLayout.updateIndicatorPositionByAnimator(mCurrentPosition)//也许这里不应该再去更新indicator的位置，而是应该直接滚动最外层布局
     }
 }
 
@@ -545,11 +519,20 @@ class SlidingIndicatorLayout : LinearLayout {
         postInvalidate()
     }
 
+
+    fun updateIndicatorPositionByAnimator(position: Int) {
+        val view = getChildAt(position)
+        if (view != null) {
+            val tabView = view as GreenTabView
+            updateIndicatorPositionByAnimator(tabView)
+        }
+    }
+
     /**
      * 用动画平滑更新indicator的位置
      * @param tabView 当前这个子view
      */
-    fun updateIndicatorPositionByAnimator(tabView: GreenTabView) {
+    private fun updateIndicatorPositionByAnimator(tabView: GreenTabView) {
         // 处理最外层布局( HankTabLayout )的滑动
         parent.run {
             tabView.getHitRect(tabViewBounds)
@@ -630,11 +613,6 @@ class GreenTabView : LinearLayout {
             titleTextView.setBackgroundColor(tabViewBackgroundColor)
 
             titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
-            Log.d(
-                "setTextSizeTag",
-                "初始，选中状态下的字体大小 : ${tabViewTextSizeSelected}"
-            )
-
             titleTextView.typeface = tabViewTextTypeface
             titleTextView.setTextColor(tabViewTextColor)
             titleTextView.gravity = Gravity.CENTER
@@ -652,9 +630,9 @@ class GreenTabView : LinearLayout {
         addView(titleTextView, param)
 
         setOnClickListener {
-            parent.updateIndicatorPositionByAnimator(this)
-            parent.parent.mViewPager.currentItem =
-                parent.indexOfChild(this)// 拿到viewPager，然后强制滑动到指定的page
+            val index = parent.indexOfChild(this)
+            parent.updateIndicatorPositionByAnimator(index)
+            parent.parent.mViewPager.currentItem = index// 拿到viewPager，然后强制滑动到指定的page
         }
     }
 
@@ -665,17 +643,9 @@ class GreenTabView : LinearLayout {
             if (selected) {
                 titleTextView.setTextColor(tabViewTextColorSelected)
                 titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
-                Log.d(
-                    "setTextSizeTag",
-                    "变为选中 : $tabViewTextSizeSelected"
-                )
             } else {
                 titleTextView.setTextColor(tabViewTextColor)
                 titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSize)
-                Log.d(
-                    "setTextSizeTag",
-                    "变为不选中 : $tabViewTextSize"
-                )
             }
         }
     }
