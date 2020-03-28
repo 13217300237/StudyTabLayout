@@ -8,46 +8,41 @@
     android:orientation="vertical"
     tools:context=".ui.MainActivity">
 
-    <com.zhou.studytablayout.ui.custom.GreenTabLayout
-        android:id="@+id/hankTabLayout2"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="visible"
-        app:indicatorAlignMode="CENTER"
-        app:indicatorColor="@color/c8"
-        app:indicatorElastic="true"
-        app:indicatorExactWidth="20dp"
-        app:indicatorHeight="3dp"
-        app:indicatorLocationGravity="BOTTOM"
-        app:indicatorMargin="2dp"
-        app:indicatorWidthMode="EXACT"
-        app:indicatorWidthPercentages="0.8"
-        app:tabViewBackgroundColor="@color/c4"
-        app:tabViewTextColor="@color/cf"
-        app:tabViewTextColorSelected="@color/c8"
-        app:tabViewTextPaddingBottom="0dp"
-        app:tabViewTextPaddingLeft="0dp"
-        app:tabViewTextPaddingRight="0dp"
-        app:tabViewTextPaddingTop="0dp"
-        app:tabViewTextSize="20sp"
-        app:tabViewTextSizeSelected="20sp"
-        tools:background="@color/c4"
-        tools:layout_height="100dp" />
+        android:clipChildren="false">
 
-    <androidx.viewpager.widget.ViewPager
-        android:id="@+id/hankViewpager"
-        android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_margin="20dp"
-        android:clipChildren="false"
-        tools:background="@color/design_default_color_secondary_variant" />
+        <androidx.viewpager.widget.ViewPager
+            android:id="@+id/hankViewpager"
+            android:layout_width="match_parent"
+            android:layout_height="200dp"
+            android:layout_margin="20dp"
+            android:clipChildren="false"
+            tools:background="@color/design_default_color_secondary_variant" />
+    </FrameLayout>
 
-    <com.zhou.studytablayout.ui.custom.GreenTabLayout
-        android:id="@+id/hankTabLayout"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="visible"
-        tools:layout_height="100dp" />
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:clipChildren="true">
+
+        <com.zhou.studytablayout.ui.custom.GreenTabLayout
+            android:id="@+id/hankTabLayout"
+            android:layout_width="match_parent"
+            android:layout_marginLeft="0dp"
+            android:layout_marginRight="0dp"
+            android:layout_height="wrap_content"
+            app:indicatorWidthMode="RELATIVE_TAB_VIEW"
+            app:indicatorWidthPercentages="0.8"
+            app:indicatorElastic="true"
+            app:indicatorElasticBaseMultiple="5.0"
+            app:indicatorDrawable="@drawable/indicator2"
+            app:indicatorLocationGravity="TOP"
+            tools:layout_height="100dp" />
+    </FrameLayout>
 
 
 </LinearLayout>

@@ -68,10 +68,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     }
 
     class IndicatorAttrs {
-        /**
-         *  indicator的弹性效果
-         */
-        var indicatorElastic: Boolean = false
+
         var indicatorColor: Int = 0
         /**
          * 支持 Gravity.BOTTOM 和 Gravity.TOP
@@ -121,6 +118,15 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         var indicatorMargin: Float = 0f // 根据 locationGravity 决定，如果是放在底部，就是与底部的距离
 
         var indicatorDrawable: Drawable? = null // 默认drawable
+
+        /**
+         *  indicator的弹性效果
+         */
+        var indicatorElastic: Boolean = false
+        /**
+         *  拉伸的基础倍数，倍数越大，拉伸效果越明显
+         */
+        var indicatorElasticBaseMultiple = 1f //
     }
 
     private lateinit var indicatorLayout: SlidingIndicatorLayout
@@ -255,6 +261,8 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
                 }
 
                 indicatorElastic = a.getBoolean(R.styleable.GreenTabLayout_indicatorElastic, true)
+                indicatorElasticBaseMultiple =
+                    a.getFloat(R.styleable.GreenTabLayout_indicatorElasticBaseMultiple, 1f)
             }
         } finally {
             a?.recycle()
@@ -372,9 +380,9 @@ class SlidingIndicatorLayout : LinearLayout {
 
 
         var selectedIndicator: Drawable
-        if (null != parent.indicatorAttrs.indicatorDrawable) {// 如果drawable是空，那就涂颜色
+        if (null != parent.indicatorAttrs.indicatorDrawable) {// 如果drawable是空
             selectedIndicator = parent.indicatorAttrs.indicatorDrawable!!
-        } else {
+        } else { // 那就涂颜色
             selectedIndicator = GradientDrawable()
             DrawableCompat.setTint(
                 selectedIndicator,
@@ -413,14 +421,26 @@ class SlidingIndicatorLayout : LinearLayout {
         }
 
         // 是否开启 indicator的弹性拉伸效果
+
+        // 计算临界值
+        val baseMultiple = parent.indicatorAttrs.indicatorElasticBaseMultiple // 基础倍数,决定拉伸的最大程度
+        val basePositionOffsetCriticalValue = 0.5f // positionOffset的中值
+        val indicatorCriticalValue = 1 + baseMultiple
+        // indicatorCriticalValue的计算方法很有参考价值，所以详细记录下来
+        // positionOffset 是 从 0 慢慢变成1的，分为两段，一段从0->0.5 ,一段从0.5->1
+        // 我要求，前半段的ratio最终值，要和后半段的初始值相等，这样才能无缝衔接
+        //  前半段的ratio最终值 = 1（原始倍率）+ 0.5 * baseMultiple（拉伸倍数，数值越大，拉伸越明显）
+        //  后半段的ratio值 = indicatorCriticalValue（临界值） - 0.5f * baseMultiple
+        // 两者必须相等，所以算出 indicatorCriticalValue（临界值） = 1（原始倍率）+0.5 * baseMultiple + 0.5 * baseMultiple
+        // 最终， indicatorCriticalValue（临界值） = 1+ baseMultiple
         var ratio =
             if (parent.indicatorAttrs.indicatorElastic) {
                 when {
                     positionOffset >= 0 && positionOffset < 0.5 -> {
-                        1 + positionOffset
+                        1 + positionOffset * baseMultiple // 拉伸长度
                     }
-                    else -> {
-                        2 - positionOffset
+                    else -> {// 如果到了下半段，当offset越过中值之后ratio的值
+                        indicatorCriticalValue - positionOffset * baseMultiple
                     }
                 }
             } else 1f

@@ -35,6 +35,6 @@
         <attr name="indicatorDrawable" format="reference"/>
         <!-- indicator的弹性效果 -->
         <attr name="indicatorElastic" format="boolean"/>
-
+        <attr name="indicatorElasticBaseMultiple" format="float"/>
     </declare-styleable>
 </resources>
