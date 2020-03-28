@@ -36,11 +36,11 @@ import kotlin.math.roundToInt
  */
 class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     constructor(ctx: Context) : super(ctx) {
-        init(null, 0)
+        init(null)
     }
 
     constructor(ctx: Context, attributes: AttributeSet) : super(ctx, attributes) {
-        init(attributes, 0)
+        init(attributes)
     }
 
     constructor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : super(
@@ -48,7 +48,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         attrs,
         defStyleAttr
     ) {
-        init(attrs, defStyleAttr)
+        init(attrs)
     }
 
     // 自定义属性相关
@@ -137,7 +137,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     var indicatorAttrs: IndicatorAttrs = IndicatorAttrs()
 
 
-    private fun init(attrs: AttributeSet?, defStyleAttr: Int) {
+    private fun init(attrs: AttributeSet?) {
         isHorizontalScrollBarEnabled = false  // 禁用滚动横条
         overScrollMode = View.OVER_SCROLL_NEVER // 禁用按下的水波效果
 
@@ -281,7 +281,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         this.mViewPager = viewPager
         viewPager.addOnPageChangeListener(this)
         val adapter = viewPager.adapter ?: return
-        val count = adapter!!.count // 栏目数量
+        val count = adapter.count // 栏目数量
         for (i in 0 until count) {
             val pageTitle = adapter.getPageTitle(i)
             addTabView(pageTitle.toString())
@@ -377,20 +377,18 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
 /**
  * 中间层 可滚动的 线性布局
  */
-class SlidingIndicatorLayout : LinearLayout {
+class SlidingIndicatorLayout(ctx: Context, var parent: GreenTabLayout) : LinearLayout(ctx) {
 
     private var indicatorLeft = 0
     private var indicatorRight = 0
     private var positionOffset = 0f
-    var parent: GreenTabLayout
     private var inited: Boolean = false
     private var scrollAnimator: ValueAnimator = ValueAnimator.ofFloat(0f, 1f)
     private val tabViewBounds = Rect()
     private val parentBounds = Rect()
 
-    constructor(ctx: Context, parent: GreenTabLayout) : super(ctx) {
+    init {
         init()
-        this.parent = parent
     }
 
     private fun init() {
@@ -400,7 +398,6 @@ class SlidingIndicatorLayout : LinearLayout {
 
     override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
         super.onLayout(changed, l, t, r, b)
-        Log.d("SlidingIndicatorLayout", "onLayout")
         if (!inited)
             parent.scrollTabLayout(0, 0f)//
     }
@@ -409,10 +406,10 @@ class SlidingIndicatorLayout : LinearLayout {
      * 作为一个viewGroup，有可能它不会执行自身的draw方法，这里有一个值去控制  setWillNotDraw
      */
     override fun draw(canvas: Canvas?) {
-        var top: Int
-        var bottom: Int
-        var margin: Int = parent.indicatorAttrs.indicatorMargin.roundToInt()
-        var indicatorHeight: Int = parent.indicatorAttrs.indicatorHeight.roundToInt()
+        val top: Int
+        val bottom: Int
+        val margin: Int = parent.indicatorAttrs.indicatorMargin.roundToInt()
+        val indicatorHeight: Int = parent.indicatorAttrs.indicatorHeight.roundToInt()
 
         // 处理属性 indicatorAttrs.locationGravity --> indicator的Gravity
         when (parent.indicatorAttrs.indicatorLocationGravity) {
@@ -427,7 +424,7 @@ class SlidingIndicatorLayout : LinearLayout {
         }
 
 
-        var selectedIndicator: Drawable
+        val selectedIndicator: Drawable
         if (null != parent.indicatorAttrs.indicatorDrawable) {// 如果drawable是空
             selectedIndicator = parent.indicatorAttrs.indicatorDrawable!!
         } else { // 那就涂颜色
@@ -471,7 +468,7 @@ class SlidingIndicatorLayout : LinearLayout {
         // 是否开启 indicator的弹性拉伸效果
         // 计算临界值
         val baseMultiple = parent.indicatorAttrs.indicatorElasticBaseMultiple // 基础倍数,决定拉伸的最大程度
-        val basePositionOffsetCriticalValue = 0.5f // positionOffset的中值
+//        val basePositionOffsetCriticalValue = 0.5f // positionOffset的中值
         val indicatorCriticalValue = 1 + baseMultiple
         // indicatorCriticalValue的计算方法很有参考价值，所以详细记录下来
         // positionOffset 是 从 0 慢慢变成1的，分为两段，一段从0->0.5 ,一段从0.5->1
@@ -480,7 +477,7 @@ class SlidingIndicatorLayout : LinearLayout {
         //  后半段的ratio值 = indicatorCriticalValue（临界值） - 0.5f * baseMultiple
         // 两者必须相等，所以算出 indicatorCriticalValue（临界值） = 1（原始倍率）+0.5 * baseMultiple + 0.5 * baseMultiple
         // 最终， indicatorCriticalValue（临界值） = 1+ baseMultiple
-        var ratio =
+        val ratio =
             if (parent.indicatorAttrs.indicatorElastic) {
                 when {
                     positionOffset >= 0 && positionOffset < 0.5 -> {
@@ -576,7 +573,7 @@ class SlidingIndicatorLayout : LinearLayout {
      * 用动画效果平滑滚动过去
      */
     private fun startScrollAnimator(tabLayout: GreenTabLayout, from: Int, to: Int) {
-        if (scrollAnimator != null && scrollAnimator.isRunning) scrollAnimator.cancel()
+        if (scrollAnimator.isRunning) scrollAnimator.cancel()
         scrollAnimator.duration = 200
         scrollAnimator.interpolator = FastOutSlowInInterpolator()
         scrollAnimator.addUpdateListener {
@@ -609,14 +606,9 @@ class SlidingIndicatorLayout : LinearLayout {
 /**
  * 最里层TabView
  */
-class GreenTabView : LinearLayout {
+class GreenTabView(ctx: Context, private var parent: SlidingIndicatorLayout) : LinearLayout(ctx) {
     lateinit var titleTextView: TextView
     private var selectedStatue: Boolean = false
-    private var parent: SlidingIndicatorLayout
-
-    constructor(ctx: Context, parent: SlidingIndicatorLayout) : super(ctx) {
-        this.parent = parent
-    }
 
     fun setTextView(textView: TextView) {
         removeAllViews()
@@ -665,3 +657,4 @@ class GreenTabView : LinearLayout {
 
 }
 
+// 明天，做出文字渐变效果,同时优化代码，删除不必要的
