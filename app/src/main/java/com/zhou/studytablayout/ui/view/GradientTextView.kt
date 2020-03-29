@@ -3,7 +3,6 @@ package com.zhou.studytablayout.ui.view
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
-import android.util.Log
 import com.zhou.studytablayout.common.GreenTextView
 
 /**
@@ -21,14 +20,13 @@ class GradientTextView : GreenTextView {
     private val mAnimating = true
 
     private val fontColor = Color.BLACK
-    private val shaderColor = Color.GREEN
+    private val shaderColor = Color.BLUE
     private val shaderColor2 = Color.YELLOW
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         if (mViewWidth == 0f) {
             mViewWidth = measuredWidth.toFloat()
-            Log.d("mViewWidth", "" + mViewWidth)
             if (mViewWidth > 0) {
                 mPaint = paint
                 mLinearGradient = LinearGradient(
@@ -63,6 +61,12 @@ class GradientTextView : GreenTextView {
             (-mViewWidth + 2f * mViewWidth * positionOffset)
         else
             -mViewWidth
+        postInvalidate()
+    }
+
+    override fun removeShader() {
+        super.removeShader()
+        mTranslate = -mViewWidth
         postInvalidate()
     }
 

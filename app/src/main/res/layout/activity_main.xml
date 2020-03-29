@@ -28,9 +28,9 @@
             app:indicatorMargin="20dp"
             app:indicatorWidthMode="RELATIVE_TAB_VIEW"
             app:indicatorWidthPercentages="0.8"
-            app:tabViewDynamicSizeWhenScrolling="false"
+            app:tabViewDynamicSizeWhenScrolling="true"
             app:tabViewTextSize="15sp"
-            app:tabViewTextSizeSelected="15sp"
+            app:tabViewTextSizeSelected="20sp"
             tools:layout_height="100dp" />
     </FrameLayout>
 
@@ -68,9 +68,9 @@
             app:indicatorMargin="20dp"
             app:indicatorWidthMode="RELATIVE_TAB_VIEW"
             app:indicatorWidthPercentages="0.8"
-            app:tabViewDynamicSizeWhenScrolling="false"
+            app:tabViewDynamicSizeWhenScrolling="true"
             app:tabViewTextSize="15sp"
-            app:tabViewTextSizeSelected="15sp"
+            app:tabViewTextSizeSelected="20sp"
             tools:layout_height="100dp" />
     </FrameLayout>
 
