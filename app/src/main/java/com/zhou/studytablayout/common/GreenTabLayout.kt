@@ -1,33 +1,23 @@
-package com.zhou.studytablayout.ui.custom
+package com.zhou.studytablayout.common
 
-import android.animation.ValueAnimator
 import android.content.Context
 import android.content.res.TypedArray
-import android.graphics.Canvas
-import android.graphics.Rect
 import android.graphics.Typeface
 import android.graphics.drawable.Drawable
-import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
 import android.util.Log
 import android.util.TypedValue
-import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.HorizontalScrollView
 import android.widget.LinearLayout
-import android.widget.TextView
-import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.get
-import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import androidx.viewpager.widget.ViewPager
 import com.zhou.studytablayout.R
 import com.zhou.studytablayout.util.dpToPx
 import com.zhou.studytablayout.util.getFontTypeFace
 import com.zhou.studytablayout.util.sp2px
-import kotlin.math.roundToInt
 
 /**
  * 绿色版
@@ -53,7 +43,6 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     }
 
     // 自定义属性相关
-
     // TabView相关属性
     class TabViewAttrs {
         var tabViewDynamicSizeWhenScrolling: Boolean = true // 是否支持 滚动ViewPager时，tabView的字体大小动态变化
@@ -70,7 +59,6 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     }
 
     class IndicatorAttrs {
-
         var indicatorColor: Int = 0
         /**
          * 支持 Gravity.BOTTOM 和 Gravity.TOP
@@ -137,6 +125,9 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     var tabViewAttrs: TabViewAttrs = TabViewAttrs()
     var indicatorAttrs: IndicatorAttrs = IndicatorAttrs()
 
+    private var currentTabViewTextSizeRealtime = 0f
+    private var nextTabViewTextSizeRealtime = 0f
+    private var settingFlag = false
 
     private fun init(attrs: AttributeSet?) {
         isHorizontalScrollBarEnabled = false  // 禁用滚动横条
@@ -146,8 +137,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         val layoutParams = LinearLayout.LayoutParams(WRAP_CONTENT, MATCH_PARENT)
         addView(indicatorLayout, layoutParams)
 
-
-        dealAttributeSet(attrs = attrs)
+        dealAttributeSet(attrs)
     }
 
     private fun dealAttributeSet(attrs: AttributeSet?) {
@@ -194,7 +184,6 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
                 tabViewDynamicSizeWhenScrolling =
                     a.getBoolean(R.styleable.GreenTabLayout_tabViewDynamicSizeWhenScrolling, true)
             }
-
 
             indicatorAttrs.run {
                 indicatorColor = a.getColor(
@@ -278,19 +267,39 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         indicatorLayout.addTabView(text)
     }
 
+    private fun addTabView(text: String, textView: GreenTextView) {
+        indicatorLayout.addTabView(text, textView)
+    }
+
     fun setupWithViewPager(viewPager: ViewPager) {
+        setupWithViewPager(viewPager, GreenTextView(context))
+    }
+
+    /**
+     * 支持使用自定义的TextView 来 编辑 文本的UI表现，比如动态效果
+     * 要求，第二个参数，t 必须是GreenTextView的子类
+     *
+     * 需要特别注意的是，一旦使用了 GreenTextView 特殊效果，原本的字体颜色可能会失效
+     * 这是由TextView类的Paint特性决定的，shader的优先级要大于setTextColor
+     */
+    fun <T : GreenTextView> setupWithViewPager(viewPager: ViewPager, t: T) {
         this.mViewPager = viewPager
         viewPager.addOnPageChangeListener(this)
         val adapter = viewPager.adapter ?: return
         val count = adapter.count // 栏目数量
         for (i in 0 until count) {
             val pageTitle = adapter.getPageTitle(i)
-            addTabView(pageTitle.toString())
+            var newInstance = GreenTextView(context)// 常规情况，使用默认的GreenTextView
+            if (t != null) {// 如果传入了具体的类型，那么就反射创建
+                // 现在知道了你的类型，那么现在我想要用你的类型反射创建出一个对象
+                val constructor =
+                    t::class.java.getConstructor(Context::class.java)
+                newInstance = constructor.newInstance(context)
+            }
+
+            addTabView(pageTitle.toString(), newInstance)
         }
     }
-
-    private var currentTabViewTextSizeRealtime = 0f
-    private var nextTabViewTextSizeRealtime = 0f
 
     /**
      *  处理属性 tabViewDynamicSizeWhenScrolling
@@ -335,7 +344,22 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         }
     }
 
-    private var settingFlag = false
+    /**
+     * 处理着色器的问题
+     */
+    private fun dealTextShaderWhenScrolling(
+        positionOffset: Float,
+        currentTabView: GreenTabView,
+        nextTabView: GreenTabView
+    ) {
+        val current = 1 + positionOffset  //(0->1)  目标current要从1到2
+        val next = positionOffset // (0->1) 目标是从0-1
+
+        Log.d("dealTextShader", "$current   $next")
+
+        currentTabView.updateTextViewShader(current, mCurrentPosition)
+        nextTabView.updateTextViewShader(next, mCurrentPosition)
+    }
 
     /**
      * 这段代码值得研究，无论左右，都是position+1即可
@@ -350,10 +374,18 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
 
         val nextTabView = indicatorLayout.getChildAt(position + 1) // 目标TabView
         if (nextTabView != null) {
+            val nextGreenTabView = nextTabView as GreenTabView
             dealAttrTabViewDynamicSizeWhenScrolling(
                 positionOffset,
                 currentTabView,
-                nextTabView!! as GreenTabView
+                nextGreenTabView
+            )
+
+            //  处理字体shader（着色器）的问题
+            dealTextShaderWhenScrolling(
+                positionOffset,
+                currentTabView,
+                nextGreenTabView
             )
 
             // 滚动tabView，使得被选中的TabView尽量处于正中
@@ -390,329 +422,5 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     override fun onPageSelected(position: Int) {
         mCurrentPosition = position
         indicatorLayout.updateIndicatorPositionByAnimator(mCurrentPosition)//也许这里不应该再去更新indicator的位置，而是应该直接滚动最外层布局
-        Log.d("afsxfd", "onPageSelected ")
     }
 }
-
-/**
- * 中间层 可滚动的 线性布局
- */
-class SlidingIndicatorLayout(ctx: Context, var parent: GreenTabLayout) : LinearLayout(ctx) {
-
-    private var indicatorLeft = 0
-    private var indicatorRight = 0
-    private var positionOffset = 0f
-    private var inited: Boolean = false
-    private var scrollAnimator: ValueAnimator = ValueAnimator.ofFloat(0f, 1f)
-    private val tabViewBounds = Rect()
-    private val parentBounds = Rect()
-
-    init {
-        init()
-    }
-
-    private fun init() {
-        setWillNotDraw(false) // 如果不这么做，它自身的draw方法就不会调用
-        gravity = Gravity.CENTER_VERTICAL
-    }
-
-    override fun onLayout(changed: Boolean, l: Int, t: Int, r: Int, b: Int) {
-        super.onLayout(changed, l, t, r, b)
-        if (!inited)
-            parent.scrollTabLayout(0, 0f)//
-    }
-
-    /**
-     * 作为一个viewGroup，有可能它不会执行自身的draw方法，这里有一个值去控制  setWillNotDraw
-     */
-    override fun draw(canvas: Canvas?) {
-        val top: Int
-        val bottom: Int
-        val margin: Int = parent.indicatorAttrs.indicatorMargin.roundToInt()
-        val indicatorHeight: Int = parent.indicatorAttrs.indicatorHeight.roundToInt()
-
-        // 处理属性 indicatorAttrs.locationGravity --> indicator的Gravity
-        when (parent.indicatorAttrs.indicatorLocationGravity) {
-            GreenTabLayout.IndicatorAttrs.LocationGravity.BOTTOM -> {
-                top = height - indicatorHeight - margin
-                bottom = height - margin
-            }
-            GreenTabLayout.IndicatorAttrs.LocationGravity.TOP -> {
-                top = 0 + margin
-                bottom = indicatorHeight + margin
-            }
-        }
-
-
-        val selectedIndicator: Drawable
-        if (null != parent.indicatorAttrs.indicatorDrawable) {// 如果drawable是空
-            selectedIndicator = parent.indicatorAttrs.indicatorDrawable!!
-        } else { // 那就涂颜色
-            selectedIndicator = GradientDrawable()
-            DrawableCompat.setTint(
-                selectedIndicator,
-                parent.indicatorAttrs.indicatorColor
-            )// 规定它的颜色
-        }
-
-        val tabViewWidth = indicatorRight - indicatorLeft
-        var indicatorWidth = 0f
-
-        // 处理属性 widthMode
-        when (parent.indicatorAttrs.indicatorWidthMode) {
-            GreenTabLayout.IndicatorAttrs.WidthMode.RELATIVE_TAB_VIEW -> {
-                indicatorWidth =
-                    ((indicatorRight - indicatorLeft) * parent.indicatorAttrs.indicatorWidthPercentages)
-            }
-            GreenTabLayout.IndicatorAttrs.WidthMode.EXACT -> {
-                indicatorWidth = parent.indicatorAttrs.indicatorExactWidth
-            }
-        }
-
-        val dif = tabViewWidth - indicatorWidth
-        var centerX = 0
-        // 处理属性 alignMode
-        when (parent.indicatorAttrs.indicatorAlignMode) {
-            GreenTabLayout.IndicatorAttrs.AlignMode.LEFT -> {
-                centerX = (((indicatorLeft + indicatorRight - dif) / 2).toInt())
-            }
-            GreenTabLayout.IndicatorAttrs.AlignMode.CENTER -> {
-                centerX =
-                    ((indicatorLeft + indicatorRight) / 2) // 这个就是中心位置
-            }
-            GreenTabLayout.IndicatorAttrs.AlignMode.RIGHT -> {
-                centerX = (((indicatorLeft + indicatorRight + dif) / 2).toInt())
-            }
-        }
-
-        // 是否开启 indicator的弹性拉伸效果
-        // 计算临界值
-        val baseMultiple = parent.indicatorAttrs.indicatorElasticBaseMultiple // 基础倍数,决定拉伸的最大程度
-//        val basePositionOffsetCriticalValue = 0.5f // positionOffset的中值
-        val indicatorCriticalValue = 1 + baseMultiple
-        // indicatorCriticalValue的计算方法很有参考价值，所以详细记录下来
-        // positionOffset 是 从 0 慢慢变成1的，分为两段，一段从0->0.5 ,一段从0.5->1
-        // 我要求，前半段的ratio最终值，要和后半段的初始值相等，这样才能无缝衔接
-        //  前半段的ratio最终值 = 1（原始倍率）+ 0.5 * baseMultiple（拉伸倍数，数值越大，拉伸越明显）
-        //  后半段的ratio值 = indicatorCriticalValue（临界值） - 0.5f * baseMultiple
-        // 两者必须相等，所以算出 indicatorCriticalValue（临界值） = 1（原始倍率）+0.5 * baseMultiple + 0.5 * baseMultiple
-        // 最终， indicatorCriticalValue（临界值） = 1+ baseMultiple
-        val ratio =
-            if (parent.indicatorAttrs.indicatorElastic) {
-                when {
-                    positionOffset >= 0 && positionOffset < 0.5 -> {
-                        1 + positionOffset * baseMultiple // 拉伸长度
-                    }
-                    else -> {// 如果到了下半段，当offset越过中值之后ratio的值
-                        indicatorCriticalValue - positionOffset * baseMultiple
-                    }
-                }
-            } else 1f
-
-        // 能不能一边draw一边改变 TabView里面TextView的textSize呢？
-        // 这里能够获取到
-
-        // 可以开始绘制
-        selectedIndicator.run {
-            setBounds(
-                ((centerX - indicatorWidth * ratio / 2).toInt()),
-                top,
-                ((centerX + indicatorWidth * ratio / 2).toInt()),
-                bottom
-            )// 规定它的边界
-            draw(canvas!!)// 然后绘制到画布上
-        }
-
-        initIndicator()// 刚开始的时候，indicatorLeft和indicatorRight都是0，所以需要通过触发一次tabView的click事件来绘制
-        super.draw(canvas)
-    }
-
-    private fun initIndicator() {
-        Log.d("addTabViewTag", "$childCount")
-        if (childCount > 0) {
-            if (!inited) {
-                inited = true
-                val tabView0 = getChildAt(0) as GreenTabView
-                tabView0.performClick() // 难道这里在岗添加进去，测量尚未完成？那怎么办,那只能在onDraw里面去执行了
-            }
-        }
-    }
-
-    fun updateIndicatorPosition(targetLeft: Int, targetRight: Int, positionOffset_: Float) {
-        indicatorLeft = targetLeft
-        indicatorRight = targetRight
-        positionOffset = positionOffset_
-        postInvalidate()
-    }
-
-
-    fun updateIndicatorPositionByAnimator(position: Int) {
-        val view = getChildAt(position)
-        if (view != null) {
-            val tabView = view as GreenTabView
-            updateIndicatorPositionByAnimator(tabView)
-        }
-    }
-
-    /**
-     * 用动画平滑更新indicator的位置
-     * @param tabView 当前这个子view
-     */
-    private fun updateIndicatorPositionByAnimator(tabView: GreenTabView) {
-        // 处理最外层布局( HankTabLayout )的滑动
-        parent.run {
-            tabView.getHitRect(tabViewBounds)
-            getHitRect(parentBounds)
-            val scrolledX = scrollX // 已经滑动过的距离
-            val tabViewRealLeft = tabViewBounds.left - scrolledX  // 真正的left, 要算上scrolledX
-            val tabViewRealRight = tabViewBounds.right - scrolledX // 真正的right, 要算上scrolledX
-
-            val tabViewCenterX = (tabViewRealLeft + tabViewRealRight) / 2
-            val parentCenterX = (parentBounds.left + parentBounds.right) / 2
-            val needToScrollX = -parentCenterX + tabViewCenterX //  差值就是需要滚动的距离
-
-            startScrollAnimator(this, scrolledX, scrolledX + needToScrollX)
-        }
-
-        resetTabViewsStatue(tabView)
-    }
-
-    fun resetTabViewsStatue(tabView: GreenTabView) {
-        // 把其他的 TabView 都设置成未选中状态
-        for (i in 0 until childCount) {
-            val current = getChildAt(i) as GreenTabView
-            if (current.hashCode() == tabView.hashCode()) {// 如果是当前被点击的这个，那么就不需要管
-                current.setSelectedStatus(true) // 选中状态
-            } else {// 如果不是
-                current.setSelectedStatus(false)// 非选中状态
-            }
-        }
-    }
-
-    /**
-     * 用动画效果平滑滚动过去
-     */
-    private fun startScrollAnimator(tabLayout: GreenTabLayout, from: Int, to: Int) {
-        if (scrollAnimator.isRunning) scrollAnimator.cancel()
-        scrollAnimator.duration = 200
-        scrollAnimator.interpolator = FastOutSlowInInterpolator()
-        scrollAnimator.addUpdateListener {
-            val progress = it.animatedValue as Float
-            val diff = to - from
-            val currentDif = (diff * progress).toInt()
-            tabLayout.scrollTo(from + currentDif, 0)
-        }
-        scrollAnimator.start()
-    }
-
-    /**
-     * 添加TabView
-     */
-    fun addTabView(text: String) {
-        val tabView = GreenTabView(context, this)
-        val margin = dpToPx(context, 10f)
-        tabView.setPadding(0, margin, 0, margin)
-        val param = LayoutParams(WRAP_CONTENT, MATCH_PARENT)
-        val textView = TextView(context)
-        param.setMargins(margin, 0, margin, 0)
-        textView.text = text
-        tabView.setTextView(textView)
-
-        addView(tabView, param)
-
-    }
-
-    fun resetTabViewsStatueByAnimator(tabView: GreenTabView) {
-        // 把其他的 TabView 都设置成未选中状态
-        for (i in 0 until childCount) {
-            val current = getChildAt(i) as GreenTabView
-            if (current.hashCode() == tabView.hashCode()) {// 如果是当前被点击的这个，那么就不需要管
-                current.setSelectedStatusByAnimator(true) // 选中状态
-            } else {// 如果不是
-                current.setSelectedStatusByAnimator(false)// 非选中状态
-            }
-        }
-    }
-}
-
-/**
- * 最里层TabView
- */
-class GreenTabView(ctx: Context, private var parent: SlidingIndicatorLayout) : LinearLayout(ctx) {
-    lateinit var titleTextView: TextView
-    private var selectedStatue: Boolean = false
-
-    fun setTextView(textView: TextView) {
-        removeAllViews()
-
-        titleTextView = textView
-        parent.parent.tabViewAttrs.run {
-            titleTextView.setBackgroundColor(tabViewBackgroundColor)
-
-            titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
-            titleTextView.typeface = tabViewTextTypeface
-            titleTextView.setTextColor(tabViewTextColor)
-            titleTextView.gravity = Gravity.CENTER
-
-            titleTextView.setPadding(
-                tabViewTextPaddingLeft.roundToInt(),
-                tabViewTextPaddingTop.roundToInt(),
-                tabViewTextPaddingRight.roundToInt(),
-                tabViewTextPaddingBottom.roundToInt()
-            )
-
-        }
-
-        val param = LayoutParams(MATCH_PARENT, MATCH_PARENT)
-        addView(titleTextView, param)
-
-        setOnClickListener {
-            val index = parent.indexOfChild(this)
-            parent.updateIndicatorPositionByAnimator(index)
-            parent.parent.mViewPager.currentItem = index// 拿到viewPager，然后强制滑动到指定的page
-        }
-    }
-
-    fun setSelectedStatus(selected: Boolean) {
-        selectedStatue = selected
-
-        parent.parent.tabViewAttrs.run {
-            if (selected) {
-                titleTextView.setTextColor(tabViewTextColorSelected)
-                titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
-            } else {
-                titleTextView.setTextColor(tabViewTextColor)
-                titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSize)
-            }
-        }
-    }
-
-    fun setSelectedStatusByAnimator(selected: Boolean) {
-        selectedStatue = selected
-
-        parent.parent.tabViewAttrs.run {
-            if (selected) {
-                titleTextView.setTextColor(tabViewTextColorSelected)
-                setTextSizeByAnimator(titleTextView, tabViewTextSizeSelected)
-            } else {
-                titleTextView.setTextColor(tabViewTextColor)
-                setTextSizeByAnimator(titleTextView, tabViewTextSize)
-            }
-        }
-    }
-
-    private var textSizeAnimator: ValueAnimator? = null
-
-    private fun setTextSizeByAnimator(textView: TextView, targetTextSizePx: Float) {
-        if (textSizeAnimator != null && textSizeAnimator?.isRunning!!) textSizeAnimator?.cancel() // 不允许动画重复执行
-        textSizeAnimator = ValueAnimator.ofFloat(textView.textSize, targetTextSizePx)
-        textSizeAnimator?.duration = 200
-        textSizeAnimator?.interpolator = LinearOutSlowInInterpolator()
-        textSizeAnimator?.addUpdateListener {
-            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, it.animatedValue as Float)
-        }
-        textSizeAnimator?.start()
-    }
-}
-
-// 明天，做出文字渐变效果,同时优化代码，删除不必要的

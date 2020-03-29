@@ -1,14 +1,13 @@
 package com.zhou.studytablayout.ui
 
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
 import com.zhou.studytablayout.R
-import com.zhou.studytablayout.ui.custom.GreenTabLayout
+import com.zhou.studytablayout.ui.view.GradientTextView
 import kotlinx.android.synthetic.main.activity_main.*
-import java.lang.StringBuilder
 
 class MainActivity : AppCompatActivity() {
 
@@ -20,7 +19,9 @@ class MainActivity : AppCompatActivity() {
         hankViewpager.adapter = adapter
         hankViewpager.offscreenPageLimit = 3
         hankViewpager.setPageTransformer(true, MyPageTransformer(this, adapter.count))
-        hankTabLayout.setupWithViewPager(hankViewpager)
+        hankTabLayout.setupWithViewPager(hankViewpager, GradientTextView(this))
+
+        hankTabLayout2.setupWithViewPager(hankViewpager)
     }
 
     class MyPagerAdapter(manager: FragmentManager) :

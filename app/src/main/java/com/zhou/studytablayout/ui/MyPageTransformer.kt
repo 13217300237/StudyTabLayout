@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.Build
 import android.util.Log
 import android.view.View
-import androidx.annotation.RequiresApi
 import androidx.viewpager.widget.ViewPager
 import kotlin.math.pow
 
@@ -35,7 +34,6 @@ class MyPageTransformer : ViewPager.PageTransformer {
         size = s
     }
 
-    @RequiresApi(Build.VERSION_CODES.LOLLIPOP)
     override fun transformPage(view: View, position: Float) {
         Log.d("setPageTransformer", "view:${view.hashCode()} position:$position")
         view.translationX = -position * view.width + position * dpToPx(
@@ -55,7 +53,10 @@ class MyPageTransformer : ViewPager.PageTransformer {
                     .toFloat()// alpha = 0.8的p-1次方
             }
         }
-        view.z = size - position
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            view.z = size - position
+        }
     }
 
     private fun dpToPx(ctx: Context, dpValue: Float): Int {

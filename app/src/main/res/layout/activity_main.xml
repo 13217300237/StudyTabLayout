@@ -11,6 +11,32 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginLeft="20dp"
+        android:layout_marginRight="20dp"
+        android:clipChildren="true">
+
+        <com.zhou.studytablayout.common.GreenTabLayout
+            android:id="@+id/hankTabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="100dp"
+            android:layout_marginLeft="0dp"
+            android:layout_marginRight="0dp"
+            app:indicatorDrawable="@drawable/indicator"
+            app:indicatorElastic="true"
+            app:indicatorElasticBaseMultiple="2.0"
+            app:indicatorLocationGravity="BOTTOM"
+            app:indicatorMargin="20dp"
+            app:indicatorWidthMode="RELATIVE_TAB_VIEW"
+            app:indicatorWidthPercentages="0.8"
+            app:tabViewDynamicSizeWhenScrolling="false"
+            app:tabViewTextSize="15sp"
+            app:tabViewTextSizeSelected="15sp"
+            tools:layout_height="100dp" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:clipChildren="false">
 
         <androidx.viewpager.widget.ViewPager
@@ -22,20 +48,20 @@
             tools:background="@color/design_default_color_secondary_variant" />
     </FrameLayout>
 
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="20dp"
-        android:layout_marginRight="20dp"
+        android:layout_margin="20dp"
         android:clipChildren="true">
 
-        <com.zhou.studytablayout.ui.custom.GreenTabLayout
-            android:id="@+id/hankTabLayout"
+        <com.zhou.studytablayout.common.GreenTabLayout
+            android:id="@+id/hankTabLayout2"
             android:layout_width="match_parent"
             android:layout_height="100dp"
             android:layout_marginLeft="0dp"
             android:layout_marginRight="0dp"
-            app:indicatorDrawable="@drawable/indicator"
+            app:indicatorDrawable="@drawable/indicator2"
             app:indicatorElastic="true"
             app:indicatorElasticBaseMultiple="2.0"
             app:indicatorLocationGravity="TOP"
@@ -44,9 +70,8 @@
             app:indicatorWidthPercentages="0.8"
             app:tabViewDynamicSizeWhenScrolling="false"
             app:tabViewTextSize="15sp"
-            app:tabViewTextSizeSelected="20dp"
+            app:tabViewTextSizeSelected="15sp"
             tools:layout_height="100dp" />
     </FrameLayout>
-
 
 </LinearLayout>
