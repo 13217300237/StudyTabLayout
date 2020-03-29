@@ -21,6 +21,7 @@ import android.widget.TextView
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.core.view.get
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
+import androidx.interpolator.view.animation.LinearOutSlowInInterpolator
 import androidx.viewpager.widget.ViewPager
 import com.zhou.studytablayout.R
 import com.zhou.studytablayout.util.dpToPx
@@ -292,6 +293,51 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     private var nextTabViewTextSizeRealtime = 0f
 
     /**
+     *  处理属性 tabViewDynamicSizeWhenScrolling
+     */
+    private fun dealAttrTabViewDynamicSizeWhenScrolling(
+        positionOffset: Float,
+        currentTabView: GreenTabView,
+        nextTabView: GreenTabView
+    ) {
+        if (tabViewAttrs.tabViewDynamicSizeWhenScrolling) {
+            if (positionOffset != 0f) {
+                // 在这里，让当前字体变小，next的字体变大
+                val diffSize =
+                    tabViewAttrs.tabViewTextSizeSelected - tabViewAttrs.tabViewTextSize
+                when (mScrollState) {
+                    ViewPager.SCROLL_STATE_DRAGGING -> {
+                        currentTabViewTextSizeRealtime =
+                            tabViewAttrs.tabViewTextSizeSelected - diffSize * positionOffset
+                        currentTabView.titleTextView.setTextSize(
+                            TypedValue.COMPLEX_UNIT_PX,
+                            currentTabViewTextSizeRealtime
+                        )
+
+                        nextTabViewTextSizeRealtime =
+                            tabViewAttrs.tabViewTextSize + diffSize * positionOffset
+                        nextTabView.titleTextView.setTextSize(
+                            TypedValue.COMPLEX_UNIT_PX,
+                            nextTabViewTextSizeRealtime
+                        )
+
+                        settingFlag = false
+                    }
+                    ViewPager.SCROLL_STATE_SETTLING -> {
+                        // OK，定位到问题，在 mScrollState 为setting状态时，positionOffset的变化没有 dragging时那么细致
+                        // 只要不处理 SETTING下的字体大小变化，也可以达成效果
+                        if (!settingFlag)
+                            indicatorLayout.resetTabViewsStatueByAnimator(indicatorLayout[mCurrentPosition] as GreenTabView)
+                        settingFlag = true
+                    }
+                }
+            }
+        }
+    }
+
+    private var settingFlag = false
+
+    /**
      * 这段代码值得研究，无论左右，都是position+1即可
      *
      * TODO 一定要研究
@@ -304,38 +350,11 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
 
         val nextTabView = indicatorLayout.getChildAt(position + 1) // 目标TabView
         if (nextTabView != null) {
-
-            // 处理属性 tabViewDynamicSizeWhenScrolling
-            if (tabViewAttrs.tabViewDynamicSizeWhenScrolling) {
-                if (positionOffset != 0f) {
-                    // 在这里，让当前字体变小，next的字体变大
-                    val diffSize =
-                        tabViewAttrs.tabViewTextSizeSelected - tabViewAttrs.tabViewTextSize
-                    when (mScrollState) {
-                        ViewPager.SCROLL_STATE_DRAGGING -> {
-                            currentTabViewTextSizeRealtime =
-                                tabViewAttrs.tabViewTextSizeSelected - diffSize * positionOffset
-                            currentTabView.titleTextView.setTextSize(
-                                TypedValue.COMPLEX_UNIT_PX,
-                                currentTabViewTextSizeRealtime
-                            )
-
-                            nextTabViewTextSizeRealtime =
-                                tabViewAttrs.tabViewTextSize + diffSize * positionOffset
-                            (nextTabView as GreenTabView).titleTextView.setTextSize(
-                                TypedValue.COMPLEX_UNIT_PX,
-                                nextTabViewTextSizeRealtime
-                            )
-                        }
-                        ViewPager.SCROLL_STATE_SETTLING -> {
-                            // OK，定位到问题，在 mScrollState 为setting状态时，positionOffset的变化没有 draging时那么细致
-                            // 只要不处理 SETTING下的字体大小变化，也可以达成效果
-                            indicatorLayout.resetTabViewsStatue(indicatorLayout[mCurrentPosition] as GreenTabView)
-                        }
-                    }
-                }
-            }
-
+            dealAttrTabViewDynamicSizeWhenScrolling(
+                positionOffset,
+                currentTabView,
+                nextTabView!! as GreenTabView
+            )
 
             // 滚动tabView，使得被选中的TabView尽量处于正中
             val nextLeft = nextTabView.left
@@ -371,6 +390,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     override fun onPageSelected(position: Int) {
         mCurrentPosition = position
         indicatorLayout.updateIndicatorPositionByAnimator(mCurrentPosition)//也许这里不应该再去更新indicator的位置，而是应该直接滚动最外层布局
+        Log.d("afsxfd", "onPageSelected ")
     }
 }
 
@@ -601,6 +621,18 @@ class SlidingIndicatorLayout(ctx: Context, var parent: GreenTabLayout) : LinearL
         addView(tabView, param)
 
     }
+
+    fun resetTabViewsStatueByAnimator(tabView: GreenTabView) {
+        // 把其他的 TabView 都设置成未选中状态
+        for (i in 0 until childCount) {
+            val current = getChildAt(i) as GreenTabView
+            if (current.hashCode() == tabView.hashCode()) {// 如果是当前被点击的这个，那么就不需要管
+                current.setSelectedStatusByAnimator(true) // 选中状态
+            } else {// 如果不是
+                current.setSelectedStatusByAnimator(false)// 非选中状态
+            }
+        }
+    }
 }
 
 /**
@@ -655,6 +687,32 @@ class GreenTabView(ctx: Context, private var parent: SlidingIndicatorLayout) : L
         }
     }
 
+    fun setSelectedStatusByAnimator(selected: Boolean) {
+        selectedStatue = selected
+
+        parent.parent.tabViewAttrs.run {
+            if (selected) {
+                titleTextView.setTextColor(tabViewTextColorSelected)
+                setTextSizeByAnimator(titleTextView, tabViewTextSizeSelected)
+            } else {
+                titleTextView.setTextColor(tabViewTextColor)
+                setTextSizeByAnimator(titleTextView, tabViewTextSize)
+            }
+        }
+    }
+
+    private var textSizeAnimator: ValueAnimator? = null
+
+    private fun setTextSizeByAnimator(textView: TextView, targetTextSizePx: Float) {
+        if (textSizeAnimator != null && textSizeAnimator?.isRunning!!) textSizeAnimator?.cancel() // 不允许动画重复执行
+        textSizeAnimator = ValueAnimator.ofFloat(textView.textSize, targetTextSizePx)
+        textSizeAnimator?.duration = 200
+        textSizeAnimator?.interpolator = LinearOutSlowInInterpolator()
+        textSizeAnimator?.addUpdateListener {
+            textView.setTextSize(TypedValue.COMPLEX_UNIT_PX, it.animatedValue as Float)
+        }
+        textSizeAnimator?.start()
+    }
 }
 
 // 明天，做出文字渐变效果,同时优化代码，删除不必要的

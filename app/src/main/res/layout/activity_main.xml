@@ -32,18 +32,19 @@
         <com.zhou.studytablayout.ui.custom.GreenTabLayout
             android:id="@+id/hankTabLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="100dp"
             android:layout_marginLeft="0dp"
             android:layout_marginRight="0dp"
-            app:indicatorDrawable="@mipmap/indicator"
+            app:indicatorDrawable="@drawable/indicator"
             app:indicatorElastic="true"
-            app:tabViewTextSize="15sp"
-            app:tabViewDynamicSizeWhenScrolling="true"
-            app:tabViewTextSizeSelected="30sp"
             app:indicatorElasticBaseMultiple="2.0"
-            app:indicatorLocationGravity="BOTTOM"
+            app:indicatorLocationGravity="TOP"
+            app:indicatorMargin="20dp"
             app:indicatorWidthMode="RELATIVE_TAB_VIEW"
             app:indicatorWidthPercentages="0.8"
+            app:tabViewDynamicSizeWhenScrolling="false"
+            app:tabViewTextSize="15sp"
+            app:tabViewTextSizeSelected="20dp"
             tools:layout_height="100dp" />
     </FrameLayout>
 
