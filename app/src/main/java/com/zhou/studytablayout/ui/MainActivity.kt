@@ -19,7 +19,7 @@ class MainActivity : AppCompatActivity() {
         hankViewpager.adapter = adapter
         hankViewpager.offscreenPageLimit = 3
         hankViewpager.setPageTransformer(true, MyPageTransformer(this, adapter.count))
-        hankTabLayout.setupWithViewPager(hankViewpager,null)
+        hankTabLayout.setupWithViewPager(hankViewpager, GradientTextView(this))
 
         hankTabLayout2.setupWithViewPager(hankViewpager)
     }

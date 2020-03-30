@@ -6,9 +6,9 @@ import android.graphics.Canvas
 import android.graphics.Rect
 import android.graphics.drawable.Drawable
 import android.graphics.drawable.GradientDrawable
-import android.util.Log
 import android.view.Gravity
-import android.view.ViewGroup
+import android.view.ViewGroup.LayoutParams.MATCH_PARENT
+import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.widget.LinearLayout
 import androidx.core.graphics.drawable.DrawableCompat
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
@@ -129,10 +129,6 @@ class SlidingIndicatorLayout(ctx: Context, var parent: GreenTabLayout) : LinearL
                     }
                 }
             } else 1f
-
-        // 能不能一边draw一边改变 TabView里面TextView的textSize呢？
-        // 这里能够获取到
-
         // 可以开始绘制
         selectedIndicator.run {
             setBounds(
@@ -149,7 +145,6 @@ class SlidingIndicatorLayout(ctx: Context, var parent: GreenTabLayout) : LinearL
     }
 
     private fun initIndicator() {
-        Log.d("addTabViewTag", "$childCount")
         if (childCount > 0) {
             if (!inited) {
                 inited = true
@@ -180,8 +175,8 @@ class SlidingIndicatorLayout(ctx: Context, var parent: GreenTabLayout) : LinearL
      * @param tabView 当前这个子view
      */
     private fun updateIndicatorPositionByAnimator(tabView: GreenTabView) {
-        // 处理最外层布局( HankTabLayout )的滑动
         parent.run {
+            // 处理最外层布局( HankTabLayout )的滑动
             tabView.getHitRect(tabViewBounds)
             getHitRect(parentBounds)
             val scrolledX = scrollX // 已经滑动过的距离
@@ -199,8 +194,7 @@ class SlidingIndicatorLayout(ctx: Context, var parent: GreenTabLayout) : LinearL
     }
 
     private fun resetTabViewsStatue(tabView: GreenTabView) {
-        // 把其他的 TabView 都设置成未选中状态
-        for (i in 0 until childCount) {
+        for (i in 0 until childCount) {// 把其他的 TabView 都设置成未选中状态
             val current = getChildAt(i) as GreenTabView
             if (current.hashCode() == tabView.hashCode()) {// 如果是当前被点击的这个，那么就不需要管
                 current.setSelectedStatus(true) // 选中状态
@@ -227,31 +221,24 @@ class SlidingIndicatorLayout(ctx: Context, var parent: GreenTabLayout) : LinearL
     }
 
     /**
-     * 添加TabView
+     * 添加TabView，内部创建 TextView
      */
     fun addTabView(text: String) {
-        val tabView = GreenTabView(context, this)
-        val margin = dpToPx(context, 10f)
-        tabView.setPadding(0, margin, 0, margin)
-        val param =
-            LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT)
         val textView = GreenTextView(context)
-        param.setMargins(margin, 0, margin, 0)
-        textView.text = text
-        tabView.setTextView(textView)
-        addView(tabView, param)
+        addTabView(text, textView)
     }
 
     /**
-     * 增加一个泛型方法，可以规定TextView的具体子类
-     * 添加TabView
+     *
+     * 添加TabView，使用参数传入的TextView
+     * @param textView
      */
     fun addTabView(text: String, textView: GreenTextView) {
         val tabView = GreenTabView(context, this)
         val margin = dpToPx(context, 10f)
         tabView.setPadding(0, margin, 0, margin)
         val param =
-            LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.MATCH_PARENT)
+            LayoutParams(WRAP_CONTENT, MATCH_PARENT)
         param.setMargins(margin, 0, margin, 0)
         textView.text = text
         tabView.setTextView(textView)
@@ -259,8 +246,7 @@ class SlidingIndicatorLayout(ctx: Context, var parent: GreenTabLayout) : LinearL
     }
 
     fun resetTabViewsStatueByAnimator(tabView: GreenTabView) {
-        // 把其他的 TabView 都设置成未选中状态
-        for (i in 0 until childCount) {
+        for (i in 0 until childCount) {// 把其他的 TabView 都设置成未选中状态
             val current = getChildAt(i) as GreenTabView
             if (current.hashCode() == tabView.hashCode()) {// 如果是当前被点击的这个，那么就不需要管
                 current.setSelectedStatusByAnimator(true) // 选中状态
