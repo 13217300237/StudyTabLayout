@@ -365,7 +365,8 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
             ViewPager.SCROLL_STATE_SETTLING -> {
                 // OK，定位到问题，在 mScrollState 为setting状态时，positionOffset的变化没有 dragging时那么细致
                 // 只要不处理 SETTING下的字体大小变化，也可以达成效果
-
+                currentTabView.notifySetting(mCurrentPosition)
+                nextTabView.notifySetting(mCurrentPosition)
                 // setting状态可能有多次触发，抓住第一次出发的时机，用属性动画矫正特效
             }
         }

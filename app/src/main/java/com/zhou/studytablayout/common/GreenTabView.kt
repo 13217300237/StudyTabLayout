@@ -91,10 +91,15 @@ class GreenTabView(ctx: Context, private var parent: SlidingIndicatorLayout) : L
         textSizeAnimator?.start()
     }
 
-    fun updateTextViewShader(positionOffset: Float, mCurrentPosition: Int) {
+
+    fun notifySetting(currentPosition: Int) {
+        titleTextView.onSetting(parent.indexOfChild(this) == currentPosition)
+    }
+
+    fun updateTextViewShader(positionOffset: Float, currentPosition: Int) {
         titleTextView.setMatrixTranslate(
             positionOffset,
-            parent.indexOfChild(this) == mCurrentPosition
+            parent.indexOfChild(this) == currentPosition
         )
     }
 }
