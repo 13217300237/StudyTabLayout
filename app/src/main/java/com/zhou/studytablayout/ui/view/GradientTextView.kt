@@ -21,8 +21,7 @@ class GradientTextView : GreenTextView {
     private val mAnimating = true
 
     private val fontColor = Color.BLACK
-    private val shaderColor = Color.BLUE
-    private val shaderColor2 = Color.YELLOW
+    private val shaderColor = Color.YELLOW
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
@@ -36,7 +35,7 @@ class GradientTextView : GreenTextView {
                     mViewWidth,
                     0f,
                     intArrayOf(fontColor, shaderColor, shaderColor, fontColor),
-                    floatArrayOf(0f, 0f, 0.9f, 1f),
+                    floatArrayOf(0f, 0.1f, 0.9f, 1f),
                     Shader.TileMode.CLAMP
                 )
                 mPaint.shader = mLinearGradient
