@@ -281,8 +281,11 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
      *
      * 需要特别注意的是，一旦使用了 GreenTextView 特殊效果，原本的字体颜色可能会失效
      * 这是由TextView类的Paint特性决定的，shader的优先级要大于setTextColor
+     *
+     * @param viewPager
+     * @param t 传null表示使用默认的TextView，不附带特效。 传GreenTextView的子类表示，使用该子类的特效
      */
-    fun <T : GreenTextView> setupWithViewPager(viewPager: ViewPager, t: T) {
+    fun <T : GreenTextView> setupWithViewPager(viewPager: ViewPager, t: T?) {
         this.mViewPager = viewPager
         viewPager.addOnPageChangeListener(this)
         val adapter = viewPager.adapter ?: return
