@@ -3,6 +3,7 @@ package com.zhou.studytablayout.ui.view
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.util.Log
 import com.zhou.studytablayout.common.GreenTextView
 
 /**
@@ -30,7 +31,7 @@ class GradientTextView : GreenTextView {
             if (mViewWidth > 0) {
                 mPaint = paint
                 mLinearGradient = LinearGradient(
-                    -mViewWidth,
+                    -mViewWidth,// 初始状态，是隐藏在x轴负向，一个view宽的距离
                     0f,
                     0f,
                     0f,
@@ -54,13 +55,22 @@ class GradientTextView : GreenTextView {
 
     /**
      * 由外部参数控制shader的位置
-     * @param positionOffset 从0 到 1 的小数
+     * @param positionOffset 当前
      */
     override fun setMatrixTranslate(positionOffset: Float, isSelected: Boolean) {
-        mTranslate = if (isSelected)
-            (-mViewWidth + 2f * mViewWidth * positionOffset)
-        else
-            -mViewWidth
+
+        Log.d("setMatrixTranslate", "positionOffset：$positionOffset  isSelected：$isSelected")
+
+        mTranslate = if (isSelected) {// 如果当前是选中状态，那么 offset会从0到1 会如何变化？
+            mViewWidth * (1 + positionOffset) // OK，没问题。
+        } else {// 它应该是慢慢显示shader
+            // 手指向右
+            mViewWidth * (positionOffset)
+        }
+
+        // 来看看到底 mTranslate 等于多少的时候，才会完全显示
+//        mTranslate = mViewWidth // 看来处于mViewWidth的时候才会完全显示
+
         postInvalidate()
     }
 

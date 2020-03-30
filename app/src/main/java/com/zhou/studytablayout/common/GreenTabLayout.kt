@@ -355,19 +355,25 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         currentTabView: GreenTabView,
         nextTabView: GreenTabView
     ) {
-        val current = 1 + positionOffset  //(0->1)  目标current要从1到2
-        val next = positionOffset // (0->1) 目标是从0-1
+        // 當前tabView和nextTabView都要更新shader
+        when (mScrollState) {
+            ViewPager.SCROLL_STATE_DRAGGING -> {
+                // 只有在拖拽状态下才允许变化shader
+                currentTabView.updateTextViewShader(positionOffset, mCurrentPosition)
+                nextTabView.updateTextViewShader(positionOffset, mCurrentPosition)
+            }
+            ViewPager.SCROLL_STATE_SETTLING -> {
+                // OK，定位到问题，在 mScrollState 为setting状态时，positionOffset的变化没有 dragging时那么细致
+                // 只要不处理 SETTING下的字体大小变化，也可以达成效果
 
-        Log.d("dealTextShader", "$current   $next")
-
-        currentTabView.updateTextViewShader(current, mCurrentPosition)
-        nextTabView.updateTextViewShader(next, mCurrentPosition)
+                // setting状态可能有多次触发，抓住第一次出发的时机，用属性动画矫正特效
+            }
+        }
     }
 
     /**
      * 这段代码值得研究，无论左右，都是position+1即可
      *
-     * TODO 一定要研究
      */
     fun scrollTabLayout(position: Int, positionOffset: Float) {
         // 如果是向左, 就用当前的tabView滑动到左边一个tabView
