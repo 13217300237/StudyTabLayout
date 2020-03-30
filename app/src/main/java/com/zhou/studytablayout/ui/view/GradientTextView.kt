@@ -99,44 +99,51 @@ class GradientTextView : GreenTextView {
 
     override fun addShader() {
         // 属性动画实现shader平滑移动
-        val thisTranslate = mTranslate
-        val animator = ValueAnimator.ofFloat(thisTranslate, 0f)
-        animator.duration = animatorDuration
-        animator.addUpdateListener {
-            mTranslate = it.animatedValue as Float
-            postInvalidate()
-        }
-        animator.start()
+        startAnimator(0f)
     }
 
     private var mPositionOffset: Float = -1f
 
     override fun onSetting(positionOffset: Float, isSelected: Boolean, direction: Int) {
         Log.d(
-            "GradientTextView",
-            "onSetting   isSelected:$isSelected   positionOffset:$positionOffset direction:$direction"
+            "onSettingTag",
+            "isSelected:$isSelected   positionOffset:$positionOffset direction:$direction"
         )
         mPositionOffset = -1f
 
         val targetTranslate = if (isSelected) {
             0f
         } else {
-            if (direction > 0f) {
+            if (direction > 0f) {// 向右回弹
                 mViewWidth
-            } else
-                -mViewWidth
+            } else {
+                Log.d("onSettingTag2", "难道这里还要分情况么？mTranslate:$mTranslate  mViewWidth:$mViewWidth")
+                if (mTranslate == mViewWidth) {
+                    mTranslate // 如果已经到达了最右边，那就保持你这个样子就行了, 可是你是怎么到最右边的？
+                } else
+                    -mViewWidth
+            }
+
         }
 
+        startAnimator(targetTranslate)
+    }
+
+    private fun startAnimator(targetTranslate: Float) {
+        if (animator != null) animator?.cancel()
         // 属性动画实现shader平滑移动
         val thisTranslate = mTranslate
-        val animator = ValueAnimator.ofFloat(thisTranslate, targetTranslate)
-        animator.duration = animatorDuration
-        animator.addUpdateListener {
-            mTranslate = it.animatedValue as Float
-            postInvalidate()
+        animator = ValueAnimator.ofFloat(thisTranslate, targetTranslate)
+        animator?.run {
+            duration = animatorDuration
+            addUpdateListener {
+                mTranslate = it.animatedValue as Float
+                postInvalidate()
+            }
+            start()
         }
-        animator.start()
     }
 
     private val animatorDuration = 200L
+    private var animator: ValueAnimator? = null
 }

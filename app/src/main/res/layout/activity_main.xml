@@ -19,7 +19,7 @@
         <com.zhou.studytablayout.common.GreenTabLayout
             android:id="@+id/hankTabLayout"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="80dp"
             android:layout_marginLeft="0dp"
             android:layout_marginRight="0dp"
             android:background="@drawable/tablayout_bg"
@@ -32,7 +32,7 @@
             app:indicatorWidthMode="EXACT"
             app:indicatorWidthPercentages="0.8"
             app:tabViewDynamicSizeWhenScrolling="true"
-            app:tabViewTextSize="15sp"
+            app:tabViewTextSize="20sp"
             app:tabViewTextSizeSelected="20sp"
             tools:layout_height="100dp" />
     </FrameLayout>

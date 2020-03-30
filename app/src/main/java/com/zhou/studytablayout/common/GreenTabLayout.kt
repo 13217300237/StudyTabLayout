@@ -388,8 +388,6 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
                         1  // 向右回弹
                     }
                     Log.d("directionTag", "$direction")
-
-                    // 只要不处理 SETTING下的字体大小变化，也可以达成效果
                     if (!settingFlag2) {
                         currentTabView.notifySetting(positionOffset, mCurrentPosition, direction)
                         nextTabView.notifySetting(positionOffset, mCurrentPosition, direction)
