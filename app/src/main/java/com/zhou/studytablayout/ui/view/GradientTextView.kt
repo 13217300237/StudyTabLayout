@@ -69,28 +69,24 @@ class GradientTextView : GreenTextView {
 
     private inline fun dealSwap(positionOffset: Float, isSelected: Boolean) {
         // 如果不是初始值，那说明已经赋值过，那么用 参数positionOffset 和 它对比，来得出滑动的方向
-        Log.d("setMatrixTranslate", " positionOffset：$positionOffset  isSelected：$isSelected")
+        Log.d(
+            "setMatrixTranslate",
+            " positionOffset：$positionOffset  isSelected：$isSelected   "
+        )
         // 来，先判定滑动的方向，因为方向会决定从哪个角度
         mTranslate = if (mPositionOffset < positionOffset) {// 手指向左
             if (isSelected) {// 如果当前是选中状态，那么 offset会从0到1 会如何变化？
-                mViewWidth * positionOffset
+                mViewWidth * positionOffset // OK，没问题。
             } else {
                 -mViewWidth * (1 - positionOffset)
             }
-        } else if (mPositionOffset > positionOffset) {// 手指向右
+        } else {// 手指向右
             if (isSelected) {// 如果当前是选中状态，那么 offset会从0到1 会如何变化？
-                -mViewWidth * (1 - positionOffset)
+                -mViewWidth * (1 - positionOffset) // OK，没问题。
             } else {
                 mViewWidth * positionOffset
-            }
-        } else {
-            if (isSelected) {// 如果相等
-                0f
-            } else {
-                -mViewWidth
             }
         }
-        // 到达边界的时候
         postInvalidate()
     }
 
@@ -99,7 +95,7 @@ class GradientTextView : GreenTextView {
         postInvalidate()
     }
 
-    private var mPositionOffset: Float = 0f
+    private var mPositionOffset: Float = -1f
 
     /**
      * 通知，ViewPager 即将进入setting状态,通知TabView的TitleTextView更新UI
@@ -107,8 +103,8 @@ class GradientTextView : GreenTextView {
      * @param isSelected 是否选中
      */
     override fun onSetting(isSelected: Boolean) {
-        Log.d("GradientTextView", "onSetting")
-        mPositionOffset = 0f
+        Log.d("GradientTextView", "onSetting   $isSelected")
+        mPositionOffset = -1f
 
         // 先粗暴一点，直接让shader直接显示, 貌似这样效果也不错，就这样了吧。还有别的事要做呢
         mTranslate = if (isSelected) {

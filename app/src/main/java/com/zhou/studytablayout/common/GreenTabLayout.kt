@@ -128,6 +128,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     private var currentTabViewTextSizeRealtime = 0f
     private var nextTabViewTextSizeRealtime = 0f
     private var settingFlag = false
+    private var settingFlag2 = false
 
     private fun init(attrs: AttributeSet?) {
         isHorizontalScrollBarEnabled = false  // 禁用滚动横条
@@ -359,14 +360,24 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         when (mScrollState) {
             ViewPager.SCROLL_STATE_DRAGGING -> {
                 // 只有在拖拽状态下才允许变化shader
-                currentTabView.updateTextViewShader(positionOffset, mCurrentPosition)
-                nextTabView.updateTextViewShader(positionOffset, mCurrentPosition)
+
+                // 判断当前是否到达了最左端
+                if (mCurrentPosition == 0 && positionOffset == 0f) {
+                    Log.d("dealTextShader", "已经到达了最左端")
+                } else {
+                    currentTabView.updateTextViewShader(positionOffset, mCurrentPosition)
+                    nextTabView.updateTextViewShader(positionOffset, mCurrentPosition)
+                }
+                settingFlag2 = false
             }
             ViewPager.SCROLL_STATE_SETTLING -> {
                 // OK，定位到问题，在 mScrollState 为setting状态时，positionOffset的变化没有 dragging时那么细致
                 // 只要不处理 SETTING下的字体大小变化，也可以达成效果
-                currentTabView.notifySetting(mCurrentPosition)
-                nextTabView.notifySetting(mCurrentPosition)
+                if (!settingFlag2) {
+                    currentTabView.notifySetting(mCurrentPosition)
+                    nextTabView.notifySetting(mCurrentPosition)
+                }
+                settingFlag2 = true
                 // setting状态可能有多次触发，抓住第一次出发的时机，用属性动画矫正特效
             }
         }
