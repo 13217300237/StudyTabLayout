@@ -21,8 +21,13 @@ open class GreenTextView : AppCompatTextView {
      */
     open fun removeShader() {}
 
+    open fun addShader() {}
+
     /**
-     * 通知，即将进入setting状态
+     * 通知，viewPager 即将进入setting状态
+     * @param positionOffset 当前offset
+     * @param isSelected 是否是被选择的TabView
+     * @param direction 滑动方向，大于0 表示向右回弹，小于0 表示向左回弹
      */
-    open fun onSetting(isSelected: Boolean) {}
+    open fun onSetting(positionOffset: Float, isSelected: Boolean, direction: Int) {}
 }

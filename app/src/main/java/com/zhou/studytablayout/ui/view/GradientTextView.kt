@@ -1,5 +1,6 @@
 package com.zhou.studytablayout.ui.view
 
+import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
@@ -91,27 +92,51 @@ class GradientTextView : GreenTextView {
     }
 
     override fun removeShader() {
-        mTranslate = -mViewWidth
+        Log.d("removeShaderTag", "要根据它当前的mTranslate位置决定从哪个方向消失  mTranslate:$mTranslate")
+        mTranslate = mViewWidth
         postInvalidate()
+    }
+
+    override fun addShader() {
+        // 属性动画实现shader平滑移动
+        val thisTranslate = mTranslate
+        val animator = ValueAnimator.ofFloat(thisTranslate, 0f)
+        animator.duration = animatorDuration
+        animator.addUpdateListener {
+            mTranslate = it.animatedValue as Float
+            postInvalidate()
+        }
+        animator.start()
     }
 
     private var mPositionOffset: Float = -1f
 
-    /**
-     * 通知，ViewPager 即将进入setting状态,通知TabView的TitleTextView更新UI
-     *
-     * @param isSelected 是否选中
-     */
-    override fun onSetting(isSelected: Boolean) {
-        Log.d("GradientTextView", "onSetting   $isSelected")
+    override fun onSetting(positionOffset: Float, isSelected: Boolean, direction: Int) {
+        Log.d(
+            "GradientTextView",
+            "onSetting   isSelected:$isSelected   positionOffset:$positionOffset direction:$direction"
+        )
         mPositionOffset = -1f
 
-        // 先粗暴一点，直接让shader直接显示, 貌似这样效果也不错，就这样了吧。还有别的事要做呢
-        mTranslate = if (isSelected) {
+        val targetTranslate = if (isSelected) {
             0f
         } else {
-            -mViewWidth
+            if (direction > 0f) {
+                mViewWidth
+            } else
+                -mViewWidth
         }
-        postInvalidate()
+
+        // 属性动画实现shader平滑移动
+        val thisTranslate = mTranslate
+        val animator = ValueAnimator.ofFloat(thisTranslate, targetTranslate)
+        animator.duration = animatorDuration
+        animator.addUpdateListener {
+            mTranslate = it.animatedValue as Float
+            postInvalidate()
+        }
+        animator.start()
     }
+
+    private val animatorDuration = 200L
 }

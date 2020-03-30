@@ -127,8 +127,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
 
     private var currentTabViewTextSizeRealtime = 0f
     private var nextTabViewTextSizeRealtime = 0f
-    private var settingFlag = false
-    private var settingFlag2 = false
+
 
     private fun init(attrs: AttributeSet?) {
         isHorizontalScrollBarEnabled = false  // 禁用滚动横条
@@ -305,6 +304,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         }
     }
 
+    private var settingFlag = false // 用于方法 dealAttrTabViewDynamicSizeWhenScrolling
     /**
      *  处理属性 tabViewDynamicSizeWhenScrolling
      */
@@ -348,6 +348,8 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         }
     }
 
+
+    private var settingFlag2 = false // 用于方法dealTextShaderWhenScrolling
     /**
      * 处理着色器的问题
      */
@@ -369,19 +371,37 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
                     nextTabView.updateTextViewShader(positionOffset, mCurrentPosition)
                 }
                 settingFlag2 = false
+                mSettingPositionOffset = -1f
             }
             ViewPager.SCROLL_STATE_SETTLING -> {
                 // OK，定位到问题，在 mScrollState 为setting状态时，positionOffset的变化没有 dragging时那么细致
-                // 只要不处理 SETTING下的字体大小变化，也可以达成效果
-                if (!settingFlag2) {
-                    currentTabView.notifySetting(mCurrentPosition)
-                    nextTabView.notifySetting(mCurrentPosition)
+                // 这里能不能确定回弹的方向？
+                var direction = 0
+                if (mSettingPositionOffset == -1f) {//  如果是初始值-1
+                    mSettingPositionOffset = positionOffset // 那就赋值
+                } else {
+                    direction = if (mSettingPositionOffset > positionOffset) {
+                        Log.d("mSettingPositionOffset", "<<<")
+                        -1 //向左回弹
+                    } else {
+                        Log.d("mSettingPositionOffset", ">>>")
+                        1  // 向右回弹
+                    }
+                    Log.d("directionTag", "$direction")
+
+                    // 只要不处理 SETTING下的字体大小变化，也可以达成效果
+                    if (!settingFlag2) {
+                        currentTabView.notifySetting(positionOffset, mCurrentPosition, direction)
+                        nextTabView.notifySetting(positionOffset, mCurrentPosition, direction)
+                    }
+                    settingFlag2 = true
                 }
-                settingFlag2 = true
                 // setting状态可能有多次触发，抓住第一次出发的时机，用属性动画矫正特效
             }
         }
     }
+
+    private var mSettingPositionOffset = -1f
 
     /**
      * 这段代码值得研究，无论左右，都是position+1即可

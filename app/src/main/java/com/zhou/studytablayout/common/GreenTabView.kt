@@ -57,6 +57,7 @@ class GreenTabView(ctx: Context, private var parent: SlidingIndicatorLayout) : L
             if (selected) {
                 titleTextView.setTextColor(tabViewTextColorSelected)
                 titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
+                titleTextView.addShader()
             } else {
                 Log.d("setSelectedStatus", "removeShader")
                 titleTextView.setTextColor(tabViewTextColor)
@@ -94,8 +95,12 @@ class GreenTabView(ctx: Context, private var parent: SlidingIndicatorLayout) : L
     }
 
 
-    fun notifySetting(currentPosition: Int) {
-        titleTextView.onSetting(parent.indexOfChild(this) == currentPosition)
+    fun notifySetting(positionOffset: Float, currentPosition: Int, direction: Int) {
+        titleTextView.onSetting(
+            positionOffset,
+            parent.indexOfChild(this) == currentPosition,
+            direction
+        )
     }
 
     fun updateTextViewShader(positionOffset: Float, currentPosition: Int) {
