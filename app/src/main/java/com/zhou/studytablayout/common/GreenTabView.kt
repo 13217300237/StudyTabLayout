@@ -2,6 +2,7 @@ package com.zhou.studytablayout.common
 
 import android.animation.ValueAnimator
 import android.content.Context
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.ViewGroup
@@ -57,6 +58,7 @@ class GreenTabView(ctx: Context, private var parent: SlidingIndicatorLayout) : L
                 titleTextView.setTextColor(tabViewTextColorSelected)
                 titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
             } else {
+                Log.d("setSelectedStatus", "removeShader")
                 titleTextView.setTextColor(tabViewTextColor)
                 titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSize)
                 titleTextView.removeShader()
