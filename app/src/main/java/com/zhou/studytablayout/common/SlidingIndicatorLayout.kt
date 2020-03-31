@@ -130,15 +130,18 @@ class SlidingIndicatorLayout(ctx: Context, var parent: GreenTabLayout) : LinearL
                 }
             } else 1f
         // 可以开始绘制
-        selectedIndicator.run {
-            setBounds(
-                ((centerX - indicatorWidth * ratio / 2).toInt()),
-                top,
-                ((centerX + indicatorWidth * ratio / 2).toInt()),
-                bottom
-            )// 规定它的边界
-            draw(canvas!!)// 然后绘制到画布上
-        }
+        if (customDrawHandler != null) {
+            customDrawHandler!!.draw(this, canvas)
+        } else
+            selectedIndicator.run {
+                setBounds(
+                    ((centerX - indicatorWidth * ratio / 2).toInt()),
+                    top,
+                    ((centerX + indicatorWidth * ratio / 2).toInt()),
+                    bottom
+                )// 规定它的边界
+                draw(canvas!!)// 然后绘制到画布上
+            }
 
         initIndicator()// 刚开始的时候，indicatorLeft和indicatorRight都是0，所以需要通过触发一次tabView的click事件来绘制
         super.draw(canvas)
@@ -255,4 +258,10 @@ class SlidingIndicatorLayout(ctx: Context, var parent: GreenTabLayout) : LinearL
             }
         }
     }
+
+    interface CustomDrawHandler {
+        fun draw(indicatorLayout: SlidingIndicatorLayout, canvas: Canvas?)
+    }
+
+    var customDrawHandler: CustomDrawHandler? = null
 }

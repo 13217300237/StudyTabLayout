@@ -57,12 +57,12 @@ class GreenTabView(ctx: Context, private var parent: SlidingIndicatorLayout) : L
             if (selected) {
                 titleTextView.setTextColor(tabViewTextColorSelected)
                 titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
-                titleTextView.addShader()
+                titleTextView.addShader(parent.parent.mOldCurrentPosition - parent.parent.mCurrentPosition)
             } else {
                 Log.d("setSelectedStatus", "removeShader")
                 titleTextView.setTextColor(tabViewTextColor)
                 titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSize)
-                titleTextView.removeShader()
+                titleTextView.removeShader(parent.parent.mOldCurrentPosition - parent.parent.mCurrentPosition)
             }
         }
     }
@@ -104,7 +104,7 @@ class GreenTabView(ctx: Context, private var parent: SlidingIndicatorLayout) : L
     }
 
     fun updateTextViewShader(positionOffset: Float, currentPosition: Int) {
-        titleTextView.setMatrixTranslate(
+        titleTextView.handlerPositionOffset(
             positionOffset,
             parent.indexOfChild(this) == currentPosition
         )

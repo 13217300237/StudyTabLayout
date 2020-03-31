@@ -458,8 +458,20 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
     }
 
     var mCurrentPosition = 0
+    var mOldCurrentPosition = 0
     override fun onPageSelected(position: Int) {
+        mOldCurrentPosition = mCurrentPosition
         mCurrentPosition = position
         indicatorLayout.updateIndicatorPositionByAnimator(mCurrentPosition)//也许这里不应该再去更新indicator的位置，而是应该直接滚动最外层布局
+    }
+
+
+
+    /**
+     * 注意，使用了此方法，传入了非空的CustomDrawHandler实现类对象，
+     * 原本indicator的所有属性都会失效，因为indicator的绘制工作，全部由CustomDrawHandler接管
+     */
+    fun setIndicatorDrawHandler(customDrawHandler: SlidingIndicatorLayout.CustomDrawHandler?) {
+        indicatorLayout.customDrawHandler = customDrawHandler
     }
 }

@@ -55,20 +55,9 @@ class GradientTextView : GreenTextView {
 
 
     /**
-     * 由外部参数控制shader的位置
-     * @param positionOffset 只会从0到1变化
-     * @param isSelected 是否选中
+     * 处理滑动
      */
-    override fun setMatrixTranslate(positionOffset: Float, isSelected: Boolean) {
-
-        if (mPositionOffset == -1f) {// 如果你是初始值
-            mPositionOffset = positionOffset // 那就先赋值
-        } else {
-            dealSwap(positionOffset, isSelected)
-        }
-    }
-
-    private inline fun dealSwap(positionOffset: Float, isSelected: Boolean) {
+    private fun dealSwap(positionOffset: Float, isSelected: Boolean) {
         // 如果不是初始值，那说明已经赋值过，那么用 参数positionOffset 和 它对比，来得出滑动的方向
         Log.d(
             "setMatrixTranslate",
@@ -91,18 +80,40 @@ class GradientTextView : GreenTextView {
         postInvalidate()
     }
 
-    override fun removeShader() {
-        Log.d("removeShaderTag", "要根据它当前的mTranslate位置决定从哪个方向消失  mTranslate:$mTranslate")
-        mTranslate = mViewWidth
+    /**
+     * 由外部参数控制shader的位置
+     * @param positionOffset 只会从0到1变化
+     * @param isSelected 是否选中
+     */
+    override fun handlerPositionOffset(positionOffset: Float, isSelected: Boolean) {
+        if (mPositionOffset == -1f) {// 如果你是初始值
+            mPositionOffset = positionOffset // 那就先赋值
+        } else {
+            dealSwap(positionOffset, isSelected)
+        }
+    }
+
+    /**
+     * 消除shader
+     */
+    override fun removeShader(direction: Int) {
+        mTranslate = if (direction > 0) {
+            -mViewWidth
+        } else
+            mViewWidth
         postInvalidate()
     }
 
-    override fun addShader() {
+    override fun addShader(direction: Int) {
         // 属性动画实现shader平滑移动
-        startAnimator(0f)
+        val from =
+            if (direction < 0) {
+                -mViewWidth
+            } else {
+                mViewWidth
+            }
+        startAnimator(from, 0f)
     }
-
-    private var mPositionOffset: Float = -1f
 
     override fun onSetting(positionOffset: Float, isSelected: Boolean, direction: Int) {
         Log.d(
@@ -118,22 +129,22 @@ class GradientTextView : GreenTextView {
                 mViewWidth
             } else {
                 Log.d("onSettingTag2", "难道这里还要分情况么？mTranslate:$mTranslate  mViewWidth:$mViewWidth")
-                if (mTranslate == mViewWidth) {
+                if (mTranslate == mViewWidth || mTranslate == -mViewWidth) {
                     mTranslate // 如果已经到达了最右边，那就保持你这个样子就行了, 可是你是怎么到最右边的？
                 } else
                     -mViewWidth
             }
 
         }
-
-        startAnimator(targetTranslate)
+        val thisTranslate = mTranslate
+        startAnimator(thisTranslate, targetTranslate)
     }
 
-    private fun startAnimator(targetTranslate: Float) {
+    private fun startAnimator(from: Float, targetTranslate: Float) {
         if (animator != null) animator?.cancel()
         // 属性动画实现shader平滑移动
-        val thisTranslate = mTranslate
-        animator = ValueAnimator.ofFloat(thisTranslate, targetTranslate)
+
+        animator = ValueAnimator.ofFloat(from, targetTranslate)
         animator?.run {
             duration = animatorDuration
             addUpdateListener {
@@ -143,6 +154,8 @@ class GradientTextView : GreenTextView {
             start()
         }
     }
+
+    private var mPositionOffset: Float = -1f
 
     private val animatorDuration = 200L
     private var animator: ValueAnimator? = null

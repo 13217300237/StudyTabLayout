@@ -9,19 +9,23 @@ open class GreenTextView : AppCompatTextView {
     constructor(context: Context) : super(context)
 
     /**
-     * 可重写，接收来自viewpager的position参数，做出随心所欲的textView文字特效
+     * 可重写，接收来自viewpager的position参数，做出随心所欲的textView特效
      *
      * @param isSelected 是不是当前选中的TabView
      * @param positionOffset 偏移值   0<= positionOffset <=1
      */
-    open fun setMatrixTranslate(positionOffset: Float, isSelected: Boolean) {}
+    open fun handlerPositionOffset(positionOffset: Float, isSelected: Boolean) {}
 
     /**
      * 如果发生了滑动过程中特效残留的情况，可以重写此方法用来清除特效
      */
-    open fun removeShader() {}
+    open fun removeShader(direction: Int) {}
 
-    open fun addShader() {}
+    /**
+     *  添加特效
+     * @param direction 滑动方向，大于0 表示向右回弹，小于0 表示向左回弹
+     */
+    open fun addShader(direction: Int) {}
 
     /**
      * 通知，viewPager 即将进入setting状态
