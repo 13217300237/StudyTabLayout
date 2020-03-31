@@ -119,7 +119,7 @@ class GreenTabLayout : HorizontalScrollView, ViewPager.OnPageChangeListener {
         var indicatorElasticBaseMultiple = 1f //
     }
 
-    private lateinit var indicatorLayout: SlidingIndicatorLayout
+    lateinit var indicatorLayout: SlidingIndicatorLayout
     lateinit var mViewPager: ViewPager
 
     var tabViewAttrs: TabViewAttrs = TabViewAttrs()

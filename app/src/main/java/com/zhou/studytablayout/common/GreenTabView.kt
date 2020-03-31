@@ -53,18 +53,21 @@ class GreenTabView(ctx: Context, private var parent: SlidingIndicatorLayout) : L
     fun setSelectedStatus(selected: Boolean) {
         selectedStatue = selected
 
-        parent.parent.tabViewAttrs.run {
+        parent.parent.run {
             if (selected) {
-                titleTextView.setTextColor(tabViewTextColorSelected)
-                titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSizeSelected)
-                titleTextView.addShader(parent.parent.mOldCurrentPosition - parent.parent.mCurrentPosition)
+                titleTextView.setTextColor(tabViewAttrs.tabViewTextColorSelected)
+                titleTextView.setTextSize(
+                    TypedValue.COMPLEX_UNIT_PX,
+                    tabViewAttrs.tabViewTextSizeSelected
+                )
+                titleTextView.addShader(mOldCurrentPosition, mCurrentPosition)
             } else {
-                Log.d("setSelectedStatus", "removeShader")
-                titleTextView.setTextColor(tabViewTextColor)
-                titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewTextSize)
-                titleTextView.removeShader(parent.parent.mOldCurrentPosition - parent.parent.mCurrentPosition)
+                titleTextView.setTextColor(tabViewAttrs.tabViewTextColor)
+                titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_PX, tabViewAttrs.tabViewTextSize)
+                titleTextView.removeShader(mOldCurrentPosition, mCurrentPosition)
             }
         }
+
     }
 
     fun setSelectedStatusByAnimator(selected: Boolean) {

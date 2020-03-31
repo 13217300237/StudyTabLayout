@@ -83,10 +83,14 @@ class GradientTextView : GreenTextView {
         postInvalidate()
     }
 
-    private fun printLog(tag:String){
+    private fun getIndex(): Int {
         val slidingIndicatorLayout = parent.parent as SlidingIndicatorLayout
         val tabView = parent as GreenTabView
-        val index = slidingIndicatorLayout.indexOfChild(tabView)
+        return slidingIndicatorLayout.indexOfChild(tabView)
+    }
+
+    private fun printLog(tag: String) {
+        val index = getIndex()
         Log.d("drawTag", "$tag ||index:$index || mTranslate:$mTranslate|| mViewWidth:$mViewWidth")
     }
 
@@ -106,16 +110,24 @@ class GradientTextView : GreenTextView {
     /**
      * 消除shader
      */
-    override fun removeShader(direction: Int) {
-        mTranslate = if (direction > 0) {
+    override fun removeShader(oldPosition: Int, newOldPosition: Int) {
+        val thisTranslate = mTranslate
+        val targetTranslate = if (oldPosition > newOldPosition) {
             -mViewWidth
         } else
             mViewWidth
         printLog("消除 ")
-        postInvalidate()
+
+        // 消除，如果index不等于 oldPosition，那就不执行
+        if (getIndex() == oldPosition)
+            startAnimator(thisTranslate, targetTranslate)
+        else {
+            mTranslate = targetTranslate
+            postInvalidate()
+        }
     }
 
-    override fun addShader(direction: Int) {
+    override fun addShader(oldPosition: Int, newOldPosition: Int) {
         // 属性动画实现shader平滑移动
         val thisTranslate = mTranslate
         startAnimator(thisTranslate, 0f)

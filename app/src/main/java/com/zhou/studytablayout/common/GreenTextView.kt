@@ -19,13 +19,12 @@ open class GreenTextView : AppCompatTextView {
     /**
      * 如果发生了滑动过程中特效残留的情况，可以重写此方法用来清除特效
      */
-    open fun removeShader(direction: Int) {}
+    open fun removeShader(oldPosition: Int, newOldPosition: Int) {}
 
     /**
      *  添加特效
-     * @param direction 滑动方向，大于0 表示向右回弹，小于0 表示向左回弹
      */
-    open fun addShader(direction: Int) {}
+    open fun addShader(oldPosition: Int, newOldPosition: Int) {}
 
     /**
      * 通知，viewPager 即将进入setting状态
