@@ -5,7 +5,9 @@ import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
 import android.util.Log
+import com.zhou.studytablayout.common.GreenTabView
 import com.zhou.studytablayout.common.GreenTextView
+import com.zhou.studytablayout.common.SlidingIndicatorLayout
 
 /**
  * 提供颜色渐变的TextView
@@ -77,7 +79,15 @@ class GradientTextView : GreenTextView {
                 mViewWidth * positionOffset
             }
         }
+        printLog("拖拽 ")
         postInvalidate()
+    }
+
+    private fun printLog(tag:String){
+        val slidingIndicatorLayout = parent.parent as SlidingIndicatorLayout
+        val tabView = parent as GreenTabView
+        val index = slidingIndicatorLayout.indexOfChild(tabView)
+        Log.d("drawTag", "$tag ||index:$index || mTranslate:$mTranslate|| mViewWidth:$mViewWidth")
     }
 
     /**
@@ -101,18 +111,14 @@ class GradientTextView : GreenTextView {
             -mViewWidth
         } else
             mViewWidth
+        printLog("消除 ")
         postInvalidate()
     }
 
     override fun addShader(direction: Int) {
         // 属性动画实现shader平滑移动
-        val from =
-            if (direction < 0) {
-                -mViewWidth
-            } else {
-                mViewWidth
-            }
-        startAnimator(from, 0f)
+        val thisTranslate = mTranslate
+        startAnimator(thisTranslate, 0f)
     }
 
     override fun onSetting(positionOffset: Float, isSelected: Boolean, direction: Int) {
@@ -150,6 +156,7 @@ class GradientTextView : GreenTextView {
             addUpdateListener {
                 mTranslate = it.animatedValue as Float
                 postInvalidate()
+                printLog("动画  ")
             }
             start()
         }
