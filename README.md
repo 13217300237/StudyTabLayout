@@ -5,3 +5,7 @@
 # 效果图如下
 ![效果图](https://github.com/18598925736/StudyTabLayout/blob/master/GIF%202020-3-29%2020-18-09.gif)
 
+博客地址：
+https://www.jianshu.com/p/4c474ca6c098
+https://www.jianshu.com/p/3232ac5161cc
+
